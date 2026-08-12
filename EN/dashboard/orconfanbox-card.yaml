@@ -9,6 +9,11 @@ cards:
         icon: mdi:fan
       - type: entities
         show_header_toggle: false
+        card_mod:
+          style: |
+            ha-card {
+              --state-fan-active-color: var(--state-switch-active-color);
+            }
         entities:
           - entity: fan.orconfanbox_orcon_fan_speed
             name: Fan speed
