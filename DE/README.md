@@ -44,16 +44,29 @@ Die öffentliche Firmware enthält keine persönlichen WLAN-Zugangsdaten. Nach d
 3. Das eigene WLAN auswählen und das Passwort eingeben.
 4. Nach dem Neustart ist das Gerät normalerweise unter `orconfanbox.local` erreichbar.
 
-## Home Assistant
+## Home-Assistant-Entitäten
 
-Typische Entitäten:
+Die Firmware stellt diese siebzehn Entitäten bereit:
 
-```text
-fan.orconfanbox_orcon_fan_speed
-switch.orconfanbox_orcon_unit_bypass
-sensor.orconfanbox_orcon_tacho
-sensor.orconfanbox_orcon_speed_requested
-```
+- `fan.orconfanbox_orcon_fan_speed` - Ventilator Ein/Aus und Drehzahl 0-100%;
+- `switch.orconfanbox_orcon_unit_bypass` - manueller Bypass;
+- `switch.orconfanbox_orcon_automatic_humidity` - automatische Feuchteregelung;
+- `button.orconfanbox_orcon_fan_low` - niedrige Stufe, 30%;
+- `button.orconfanbox_orcon_fan_medium` - mittlere Stufe, 60%;
+- `button.orconfanbox_orcon_fan_high` - hohe Stufe, 100%;
+- `button.orconfanbox_orcon_boost_15_minutes` - 15-Minuten-Boost;
+- `button.orconfanbox_orcon_cancel_boost` - Boost abbrechen und Ventilator stoppen;
+- `number.orconfanbox_orcon_humidity_start` - Startgrenze der Feuchteregelung;
+- `number.orconfanbox_orcon_humidity_stop` - Stoppgrenze der Feuchteregelung;
+- `sensor.orconfanbox_orcon_air_temp` - Lufttemperatur;
+- `sensor.orconfanbox_orcon_air_pressure` - Luftdruck;
+- `sensor.orconfanbox_orcon_air_humidity` - Luftfeuchtigkeit;
+- `sensor.orconfanbox_orcon_tacho` - tatsächliche Ventilatordrehzahl;
+- `sensor.orconfanbox_orcon_speed_requested` - Anforderung der Originalsteuerung;
+- `sensor.orconfanbox_orcon_fan` - Ventilatorstatus `OK` oder `Error`.
+- `update.orconfanbox_firmware` - standardmäßig deaktivierte ESPHome-Entität für Firmware-Updates.
+
+Home Assistant kann abhängig von der Gerätebenennung leicht abweichende Entitäts-IDs erzeugen. Deshalb immer die Entitätsliste des ESPHome-Geräts prüfen.
 
 Die Firmware aktiviert den Bypass automatisch, während der Ventilator läuft, und deaktiviert ihn, wenn der Ventilator stoppt.
 
