@@ -6,33 +6,6 @@
 
 ---
 
-## Nederlands
-
-ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilatie-unit met Home Assistant.
-
-> [!IMPORTANT]
-> Zet eerst de meegeleverde nieuwe ESPHome-firmware op de D1 mini. Zonder deze firmware werken de beschreven entiteiten en dashboardkaart niet correct.
-
-### Functies
-
-- Wi-Fi-configuratie via **OrconFanBox Setup** en de captive portal;
-- native ESPHome API en draadloze OTA-updates;
-- ventilatorsnelheid instelbaar van 0 tot 100% via PWM op D6;
-- aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
-- booststand van 15 minuten met annuleerknop;
-- automatische vochtregeling met instelbare start- en stopgrenzen;
-- handmatige en automatische bediening van het bypassrelais;
-- temperatuur-, luchtvochtigheids- en luchtdrukmeting met een optionele BME280;
-- tachometermeting van het werkelijke toerental;
-- vertraagde detectie van een ventilatorstoring;
-- statussensor `Orcon_Fan` met `OK` of `Error`;
-- uitlezing van het verzoek van de originele Orcon-bediening als pulslengte;
-- kant-en-klare Home Assistant-dashboardkaart.
-
-[Open de volledige Nederlandse handleiding](NL/README.md)
-
----
-
 ## English
 
 ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation unit with Home Assistant.
@@ -57,6 +30,33 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 - ready-to-use Home Assistant dashboard card.
 
 [Open the complete English guide](EN/README.md)
+
+---
+
+## Nederlands
+
+ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilatie-unit met Home Assistant.
+
+> [!IMPORTANT]
+> Zet eerst de meegeleverde nieuwe ESPHome-firmware op de D1 mini. Zonder deze firmware werken de beschreven entiteiten en dashboardkaart niet correct.
+
+### Functies
+
+- Wi-Fi-configuratie via **OrconFanBox Setup** en de captive portal;
+- native ESPHome API en draadloze OTA-updates;
+- ventilatorsnelheid instelbaar van 0 tot 100% via PWM op D6;
+- aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
+- booststand van 15 minuten met annuleerknop;
+- automatische vochtregeling met instelbare start- en stopgrenzen;
+- handmatige en automatische bediening van het bypassrelais;
+- temperatuur-, luchtvochtigheids- en luchtdrukmeting met een optionele BME280;
+- tachometermeting van het werkelijke toerental;
+- vertraagde detectie van een ventilatorstoring;
+- statussensor `Orcon_Fan` met `OK` of `Error`;
+- uitlezing van het verzoek van de originele Orcon-bediening als pulslengte;
+- kant-en-klare Home Assistant-dashboardkaart.
+
+[Open de volledige Nederlandse handleiding](NL/README.md)
 
 ---
 
