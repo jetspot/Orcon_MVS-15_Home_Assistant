@@ -1,18 +1,24 @@
-type: vertical-stack
-cards:
-  - type: tile
-    entity: fan.orconfanbox_orcon_fan_speed
-    name: Orcon Ventilatordrehzahl
-    icon: mdi:fan
-    features_position: bottom
-    vertical: false
-    features:
-      - type: fan-speed
-  - type: tile
-    entity: fan.orconfanbox_orcon_fan_speed
-    name: Orcon Ventilator
-    icon: mdi:power
-  - type: tile
-    entity: switch.orconfanbox_orcon_unit_bypass
-    name: Orcon Bypass
-    icon: mdi:swap-horizontal
+type: entities
+title: Bedienung
+show_header_toggle: false
+entities:
+  - entity: switch.orconfanbox_orcon_fan_bypass
+    name: Orcon_Fan_Bypass
+  - entity: fan.orconfanbox_orcon_fan_speed
+    name: Orcon_Fan_Speed
+  - entity: button.orconfanbox_orcon_fan_low
+    name: Orcon_Fan_Low
+  - entity: button.orconfanbox_orcon_fan_medium
+    name: Orcon_Fan_Medium
+  - entity: button.orconfanbox_orcon_fan_high
+    name: Orcon_Fan_High
+  - entity: button.orconfanbox_orcon_fan_boost_15_minutes
+    name: Orcon_Fan_Boost_15_Minutes
+  - entity: button.orconfanbox_orcon_fan_boost_cancel
+    name: Orcon_Fan_Boost_Cancel
+  - entity: switch.orconfanbox_orcon_humidity_automatic
+    name: Orcon_Humidity_Automatic
+  - entity: number.orconfanbox_orcon_humidity_start
+    name: Orcon_Humidity_Start
+  - entity: number.orconfanbox_orcon_humidity_stop
+    name: Orcon_Humidity_Stop
