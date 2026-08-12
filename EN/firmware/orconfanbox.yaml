@@ -40,17 +40,20 @@ switch:
     icon: "mdi:swap-horizontal"
     pin: D8
     restore_mode: ALWAYS_OFF
+    on_turn_off:
+      - script.execute: orcon_restore_bypass
 
   - platform: template
     id: orcon_humidity_auto
     name: "Orcon_Humidity_Automatic"
     icon: "mdi:water-percent"
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: RESTORE_DEFAULT_ON
     turn_on_action:
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 11
+      - switch.turn_on: orcon_speed_bypass
     turn_off_action:
       - fan.turn_off: orcon_fan_speed
 
@@ -65,7 +68,16 @@ fan:
     on_turn_on:
       - switch.turn_on: orcon_speed_bypass
     on_turn_off:
-      - switch.turn_off: orcon_speed_bypass
+      - if:
+          condition:
+            switch.is_on: orcon_humidity_auto
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: 11
+            - switch.turn_on: orcon_speed_bypass
+          else:
+            - switch.turn_off: orcon_speed_bypass
 
 sensor:
   - platform: pulse_counter
@@ -105,6 +117,16 @@ sensor:
     update_interval: 10s
 
 script:
+  - id: orcon_restore_bypass
+    mode: restart
+    then:
+      - delay: 100ms
+      - if:
+          condition:
+            switch.is_on: orcon_humidity_auto
+          then:
+            - switch.turn_on: orcon_speed_bypass
+
   - id: orcon_boost_15m
     mode: restart
     then:
