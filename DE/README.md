@@ -2,6 +2,9 @@
 
 Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die Home-Assistant-Dashboardkarte und die Installation.
 
+> [!IMPORTANT]
+> Zuerst muss die mitgelieferte neue ESPHome-Firmware aus `firmware/orconfanbox.yaml` auf den D1 mini geflasht werden. Ohne diese Firmware funktionieren die beschriebenen Entitäten und die Home-Assistant-Dashboardkarte nicht korrekt.
+
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [OrconWifiController auf Tindie ansehen](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
