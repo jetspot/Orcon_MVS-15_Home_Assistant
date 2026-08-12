@@ -15,12 +15,12 @@ Complete English version of the OrconFanBox firmware, Home Assistant integration
 - separate low (30%), medium (60%), and high (100%) controls;
 - a 15-minute boost with a cancel control;
 - automatic humidity control with adjustable start and stop thresholds;
-- manual bypass relay control through `Orcon_Unit_Bypass`;
+- manual bypass relay control through `Orcon_Fan_Bypass`;
 - automatic bypass activation while the fan is running and deactivation when it stops;
 - temperature, humidity, and pressure measurements with an optional BME280;
 - tachometer measurement of the actual fan speed;
 - delayed fan-failure detection when the fan is enabled but no speed is measured;
-- `Orcon_Fan` status sensor reporting `OK` or `Error`;
+- `Orcon_Fan_Status` sensor reporting `OK` or `Error`;
 - measurement of the original Orcon control's speed request as pulse length;
 - ready-to-use Home Assistant dashboard card for speed, power, and bypass.
 
@@ -49,21 +49,21 @@ The public firmware contains no personal Wi-Fi credentials. After first boot:
 The firmware exposes these seventeen entities:
 
 - `fan.orconfanbox_orcon_fan_speed` - fan power and speed from 0-100%;
-- `switch.orconfanbox_orcon_unit_bypass` - manual bypass;
-- `switch.orconfanbox_orcon_automatic_humidity` - automatic humidity control;
+- `switch.orconfanbox_orcon_fan_bypass` - manual bypass;
+- `switch.orconfanbox_orcon_humidity_automatic` - automatic humidity control;
 - `button.orconfanbox_orcon_fan_low` - low speed, 30%;
 - `button.orconfanbox_orcon_fan_medium` - medium speed, 60%;
 - `button.orconfanbox_orcon_fan_high` - high speed, 100%;
-- `button.orconfanbox_orcon_boost_15_minutes` - 15-minute boost;
-- `button.orconfanbox_orcon_cancel_boost` - cancel boost and stop the fan;
+- `button.orconfanbox_orcon_fan_boost_15_minutes` - 15-minute boost;
+- `button.orconfanbox_orcon_fan_boost_cancel` - cancel boost and stop the fan;
 - `number.orconfanbox_orcon_humidity_start` - automatic-humidity start threshold;
 - `number.orconfanbox_orcon_humidity_stop` - automatic-humidity stop threshold;
 - `sensor.orconfanbox_orcon_air_temp` - air temperature;
 - `sensor.orconfanbox_orcon_air_pressure` - air pressure;
 - `sensor.orconfanbox_orcon_air_humidity` - air humidity;
-- `sensor.orconfanbox_orcon_tacho` - actual fan speed;
-- `sensor.orconfanbox_orcon_speed_requested` - original-control request;
-- `sensor.orconfanbox_orcon_fan` - fan status `OK` or `Error`.
+- `sensor.orconfanbox_orcon_fan_tacho` - actual fan speed;
+- `sensor.orconfanbox_orcon_fan_speed_requested` - original-control request;
+- `sensor.orconfanbox_orcon_fan_status` - fan status `OK` or `Error`.
 - `update.orconfanbox_firmware` - standard disabled ESPHome entity for firmware updates.
 
 Home Assistant may generate slightly different entity IDs depending on device naming. Always verify the entity list of the ESPHome device.
