@@ -36,14 +36,14 @@ output:
 switch:
   - platform: gpio
     id: orcon_speed_bypass
-    name: "Orcon_Unit_Bypass"
+    name: "Orcon_Fan_Bypass"
     icon: "mdi:swap-horizontal"
     pin: D8
     restore_mode: ALWAYS_OFF
 
   - platform: template
     id: orcon_humidity_auto
-    name: "Orcon_Automatic_Humidity"
+    name: "Orcon_Humidity_Automatic"
     icon: "mdi:water-percent-auto"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
@@ -65,7 +65,7 @@ sensor:
   - platform: pulse_counter
     pin: D5
     id: orcon_tacho
-    name: "Orcon_Tacho"
+    name: "Orcon_Fan_Tacho"
     icon: "mdi:speedometer"
     force_update: true
     update_interval: 10s
@@ -78,7 +78,7 @@ sensor:
   - platform: pulse_width
     pin: D7
     id: orcon_speed_requested
-    name: "Orcon_Speed_Requested"
+    name: "Orcon_Fan_Speed_Requested"
     icon: "mdi:remote"
     update_interval: 10s
     accuracy_decimals: 8
@@ -134,13 +134,13 @@ button:
           speed: 100
 
   - platform: template
-    name: "Orcon_Boost_15_Minutes"
+    name: "Orcon_Fan_Boost_15_Minutes"
     icon: "mdi:fan-plus"
     on_press:
       - script.execute: orcon_boost_15m
 
   - platform: template
-    name: "Orcon_Cancel_Boost"
+    name: "Orcon_Fan_Boost_Cancel"
     icon: "mdi:fan-remove"
     on_press:
       - script.stop: orcon_boost_15m
@@ -202,7 +202,7 @@ binary_sensor:
 
 text_sensor:
   - platform: template
-    name: "Orcon_Fan"
+    name: "Orcon_Fan_Status"
     icon: "mdi:fan-alert"
     update_interval: 1s
     lambda: |-
