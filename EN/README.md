@@ -7,14 +7,22 @@ Complete English version of the OrconFanBox firmware, Home Assistant integration
 
 ## New functions in this firmware
 
+- first-time Wi-Fi provisioning through the temporary **OrconFanBox Setup** access point and captive portal;
+- direct Home Assistant connection through the native ESPHome API;
+- subsequent firmware updates over OTA without reconnecting the D1 mini over USB;
 - native fan control with an adjustable speed from 0 to 100%;
-- separate low, medium, and high controls;
+- PWM speed control through D6;
+- separate low (30%), medium (60%), and high (100%) controls;
 - a 15-minute boost with a cancel control;
 - automatic humidity control with adjustable start and stop thresholds;
-- automatic bypass switching while the fan is running;
+- manual bypass relay control through `Orcon_Unit_Bypass`;
+- automatic bypass activation while the fan is running and deactivation when it stops;
 - temperature, humidity, and pressure measurements with an optional BME280;
-- tachometer monitoring and fan-failure detection;
-- measurement of the speed request from the original Orcon control.
+- tachometer measurement of the actual fan speed;
+- delayed fan-failure detection when the fan is enabled but no speed is measured;
+- `Orcon_Fan` status sensor reporting `OK` or `Error`;
+- measurement of the original Orcon control's speed request as pulse length;
+- ready-to-use Home Assistant dashboard card for speed, power, and bypass.
 
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
