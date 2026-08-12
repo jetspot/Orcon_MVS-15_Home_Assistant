@@ -46,7 +46,7 @@ De openbare firmware bevat geen persoonlijke Wi-Fi-gegevens. Na de eerste start:
 
 ## Home Assistant-entiteiten
 
-De firmware biedt deze zeventien entiteiten aan:
+De firmware biedt deze negentien entiteiten aan:
 
 - `fan.orconfanbox_orcon_fan_speed` - ventilator aan/uit en snelheid 0-100%;
 - `switch.orconfanbox_orcon_fan_bypass` - handmatige bypass;
@@ -58,6 +58,8 @@ De firmware biedt deze zeventien entiteiten aan:
 - `button.orconfanbox_orcon_fan_boost_cancel` - boost annuleren en ventilator stoppen;
 - `number.orconfanbox_orcon_humidity_start` - startgrens automatische vochtregeling;
 - `number.orconfanbox_orcon_humidity_stop` - stopgrens automatische vochtregeling;
+- `number.orconfanbox_orcon_humidity_fan_speed` - instelbare ventilatorsnelheid bij hoge luchtvochtigheid, standaard 80%;
+- `number.orconfanbox_orcon_fan_boost_minutes` - instelbare boostduur, standaard 15 minuten;
 - `sensor.orconfanbox_orcon_air_temp` - luchttemperatuur;
 - `sensor.orconfanbox_orcon_air_pressure` - luchtdruk;
 - `sensor.orconfanbox_orcon_air_humidity` - luchtvochtigheid;

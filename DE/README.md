@@ -46,7 +46,7 @@ Die öffentliche Firmware enthält keine persönlichen WLAN-Zugangsdaten. Nach d
 
 ## Home-Assistant-Entitäten
 
-Die Firmware stellt diese siebzehn Entitäten bereit:
+Die Firmware stellt diese neunzehn Entitäten bereit:
 
 - `fan.orconfanbox_orcon_fan_speed` - Ventilator Ein/Aus und Drehzahl 0-100%;
 - `switch.orconfanbox_orcon_fan_bypass` - manueller Bypass;
@@ -58,6 +58,8 @@ Die Firmware stellt diese siebzehn Entitäten bereit:
 - `button.orconfanbox_orcon_fan_boost_cancel` - Boost abbrechen und Ventilator stoppen;
 - `number.orconfanbox_orcon_humidity_start` - Startgrenze der Feuchteregelung;
 - `number.orconfanbox_orcon_humidity_stop` - Stoppgrenze der Feuchteregelung;
+- `number.orconfanbox_orcon_humidity_fan_speed` - einstellbare Lüfterstufe bei hoher Feuchte, standardmäßig 80 %;
+- `number.orconfanbox_orcon_fan_boost_minutes` - einstellbare Boostdauer, standardmäßig 15 Minuten;
 - `sensor.orconfanbox_orcon_air_temp` - Lufttemperatur;
 - `sensor.orconfanbox_orcon_air_pressure` - Luftdruck;
 - `sensor.orconfanbox_orcon_air_humidity` - Luftfeuchtigkeit;

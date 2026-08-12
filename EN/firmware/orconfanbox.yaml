@@ -133,7 +133,7 @@ script:
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 100
-      - delay: 15min
+      - delay: !lambda 'return (uint32_t) (id(orcon_boost_minutes).state * 60000);'
       - fan.turn_off: orcon_fan_speed
 
 button:
@@ -176,6 +176,30 @@ button:
 
 number:
   - platform: template
+    id: orcon_boost_minutes
+    name: "Orcon_Fan_Boost_Minutes"
+    icon: "mdi:timer-cog-outline"
+    unit_of_measurement: "min"
+    min_value: 1
+    max_value: 60
+    step: 1
+    initial_value: 15
+    restore_value: true
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_speed
+    name: "Orcon_Humidity_Fan_Speed"
+    icon: "mdi:fan-chevron-up"
+    unit_of_measurement: "%"
+    min_value: 20
+    max_value: 100
+    step: 1
+    initial_value: 80
+    restore_value: true
+    optimistic: true
+
+  - platform: template
     id: orcon_humidity_start
     name: "Orcon_Humidity_Start"
     icon: "mdi:water-percent"
@@ -208,7 +232,7 @@ interval:
           then:
             - fan.turn_on:
                 id: orcon_fan_speed
-                speed: 60
+                speed: !lambda 'return (int) id(orcon_humidity_speed).state;'
       - if:
           condition:
             lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state <= id(orcon_humidity_stop).state;'
