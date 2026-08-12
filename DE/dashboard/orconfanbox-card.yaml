@@ -9,14 +9,14 @@ cards:
         icon: mdi:fan
       - type: entities
         show_header_toggle: false
-        card_mod:
-          style: |
-            ha-card {
-              --state-fan-active-color: var(--state-switch-active-color);
-            }
         entities:
           - entity: fan.orconfanbox_orcon_fan_speed
             name: Lüftergeschwindigkeit
+            card_mod:
+              style: |
+                :host {
+                  --state-icon-active-color: var(--state-switch-active-color);
+                }
           - entity: switch.orconfanbox_orcon_fan_bypass
             name: Bypass
           - entity: button.orconfanbox_orcon_fan_low
@@ -26,7 +26,9 @@ cards:
           - entity: button.orconfanbox_orcon_fan_high
             name: Hoch
           - entity: button.orconfanbox_orcon_fan_boost_15_minutes
-            name: 15-Minuten-Boost
+            name: Boost starten
+          - entity: number.orconfanbox_orcon_fan_boost_minutes
+            name: Boostdauer
           - entity: button.orconfanbox_orcon_fan_boost_cancel
             name: Boost abbrechen
   - type: vertical-stack
@@ -44,6 +46,8 @@ cards:
             name: Einschaltschwelle
           - entity: number.orconfanbox_orcon_humidity_stop
             name: Ausschaltschwelle
+          - entity: number.orconfanbox_orcon_humidity_fan_speed
+            name: Lüfterstufe bei Feuchte
       - type: tile
         entity: sensor.orconfanbox_orcon_fan_tacho
         name: Tatsächliche Drehzahl
