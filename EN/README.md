@@ -44,16 +44,29 @@ The public firmware contains no personal Wi-Fi credentials. After first boot:
 3. Select the local Wi-Fi network and enter its password.
 4. After reboot, the device is normally available at `orconfanbox.local`.
 
-## Home Assistant
+## Home Assistant entities
 
-Typical entities are:
+The firmware exposes these seventeen entities:
 
-```text
-fan.orconfanbox_orcon_fan_speed
-switch.orconfanbox_orcon_unit_bypass
-sensor.orconfanbox_orcon_tacho
-sensor.orconfanbox_orcon_speed_requested
-```
+- `fan.orconfanbox_orcon_fan_speed` - fan power and speed from 0-100%;
+- `switch.orconfanbox_orcon_unit_bypass` - manual bypass;
+- `switch.orconfanbox_orcon_automatic_humidity` - automatic humidity control;
+- `button.orconfanbox_orcon_fan_low` - low speed, 30%;
+- `button.orconfanbox_orcon_fan_medium` - medium speed, 60%;
+- `button.orconfanbox_orcon_fan_high` - high speed, 100%;
+- `button.orconfanbox_orcon_boost_15_minutes` - 15-minute boost;
+- `button.orconfanbox_orcon_cancel_boost` - cancel boost and stop the fan;
+- `number.orconfanbox_orcon_humidity_start` - automatic-humidity start threshold;
+- `number.orconfanbox_orcon_humidity_stop` - automatic-humidity stop threshold;
+- `sensor.orconfanbox_orcon_air_temp` - air temperature;
+- `sensor.orconfanbox_orcon_air_pressure` - air pressure;
+- `sensor.orconfanbox_orcon_air_humidity` - air humidity;
+- `sensor.orconfanbox_orcon_tacho` - actual fan speed;
+- `sensor.orconfanbox_orcon_speed_requested` - original-control request;
+- `sensor.orconfanbox_orcon_fan` - fan status `OK` or `Error`.
+- `update.orconfanbox_firmware` - standard disabled ESPHome entity for firmware updates.
+
+Home Assistant may generate slightly different entity IDs depending on device naming. Always verify the entity list of the ESPHome device.
 
 The firmware automatically enables the bypass while the fan is running and disables it when the fan stops.
 
