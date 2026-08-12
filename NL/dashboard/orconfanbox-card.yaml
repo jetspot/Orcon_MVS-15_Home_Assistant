@@ -1,51 +1,78 @@
-type: vertical-stack
+type: grid
+columns: 3
+square: false
 cards:
-  - type: entities
-    title: Ventilatorbediening
-    show_header_toggle: false
-    entities:
-      - entity: fan.orconfanbox_orcon_fan_speed
-        name: Ventilatorsnelheid
-      - entity: switch.orconfanbox_orcon_fan_bypass
-        name: Bypass
-      - entity: button.orconfanbox_orcon_fan_low
-        name: Laag
-      - entity: button.orconfanbox_orcon_fan_medium
-        name: Midden
-      - entity: button.orconfanbox_orcon_fan_high
-        name: Hoog
-      - entity: button.orconfanbox_orcon_fan_boost_15_minutes
-        name: Boost 15 minuten
-      - entity: button.orconfanbox_orcon_fan_boost_cancel
-        name: Boost annuleren
-  - type: entities
-    title: Automatische vochtregeling
-    show_header_toggle: false
-    entities:
-      - entity: switch.orconfanbox_orcon_humidity_automatic
-        name: Automatische vochtregeling
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Ventilatorbediening
+        icon: mdi:fan
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: fan.orconfanbox_orcon_fan_speed
+            name: Ventilatorsnelheid
+          - entity: switch.orconfanbox_orcon_fan_bypass
+            name: Bypass
+          - entity: button.orconfanbox_orcon_fan_low
+            name: Laag
+          - entity: button.orconfanbox_orcon_fan_medium
+            name: Midden
+          - entity: button.orconfanbox_orcon_fan_high
+            name: Hoog
+          - entity: button.orconfanbox_orcon_fan_boost_15_minutes
+            name: Boost 15 minuten
+          - entity: button.orconfanbox_orcon_fan_boost_cancel
+            name: Boost annuleren
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Automatische vochtregeling
         icon: mdi:water-percent
-      - entity: number.orconfanbox_orcon_humidity_start
-        name: Inschakelen vanaf
-      - entity: number.orconfanbox_orcon_humidity_stop
-        name: Uitschakelen onder
-  - type: entities
-    title: Luchtmetingen
-    entities:
-      - entity: sensor.orconfanbox_orcon_air_temp
-        name: Temperatuur
-      - entity: sensor.orconfanbox_orcon_air_humidity
-        name: Luchtvochtigheid
-      - entity: sensor.orconfanbox_orcon_air_pressure
-        name: Luchtdruk
-  - type: entities
-    title: Status en diagnose
-    entities:
-      - entity: sensor.orconfanbox_orcon_fan_status
-        name: Ventilatorstatus
-      - entity: sensor.orconfanbox_orcon_fan_tacho
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: switch.orconfanbox_orcon_humidity_automatic
+            name: Automatische vochtregeling
+            icon: mdi:water-percent
+          - entity: number.orconfanbox_orcon_humidity_start
+            name: Inschakelen vanaf
+          - entity: number.orconfanbox_orcon_humidity_stop
+            name: Uitschakelen onder
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_tacho
         name: Werkelijk toerental
-      - entity: sensor.orconfanbox_orcon_fan_speed_requested
+        icon: mdi:speedometer
+        vertical: false
+        hide_state: false
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_status
+        name: Ventilatorstatus
+        icon: mdi:fan-alert
+        vertical: false
+        hide_state: false
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Luchtmetingen
+        icon: mdi:home-thermometer-outline
+      - type: entities
+        entities:
+          - entity: sensor.orconfanbox_orcon_air_temp
+            name: Temperatuur
+          - entity: sensor.orconfanbox_orcon_air_humidity
+            name: Luchtvochtigheid
+          - entity: sensor.orconfanbox_orcon_air_pressure
+            name: Luchtdruk
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_speed_requested
         name: Gevraagde snelheid
-      - entity: update.orconfanbox_firmware
+        icon: mdi:remote
+        vertical: false
+        hide_state: false
+      - type: tile
+        entity: update.orconfanbox_firmware
         name: Firmware
+        icon: mdi:update
+        vertical: false
+        hide_state: false
