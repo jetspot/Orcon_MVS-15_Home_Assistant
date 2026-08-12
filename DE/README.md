@@ -46,9 +46,10 @@ Die öffentliche Firmware enthält keine persönlichen WLAN-Zugangsdaten. Nach d
 
 ## Home-Assistant-Entitäten
 
-Die Firmware stellt diese neunzehn Entitäten bereit:
+Die Firmware stellt diese zwanzig Entitäten bereit:
 
 - `fan.orconfanbox_orcon_fan_speed` - Ventilator Ein/Aus und Drehzahl 0-100%;
+- `sensor.orconfanbox_orcon_fan_percentage` - aktuell eingestellte Lüfterstufe in Prozent;
 - `switch.orconfanbox_orcon_fan_bypass` - manueller Bypass;
 - `switch.orconfanbox_orcon_humidity_automatic` - automatische Feuchteregelung;
 - `button.orconfanbox_orcon_fan_low` - niedrige Stufe, 30%;
