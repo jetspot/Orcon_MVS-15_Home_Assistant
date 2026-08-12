@@ -123,7 +123,7 @@ script:
       - delay: 100ms
       - if:
           condition:
-            switch.is_on: orcon_humidity_auto
+            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 0);'
           then:
             - switch.turn_on: orcon_speed_bypass
 
