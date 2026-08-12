@@ -44,7 +44,7 @@ switch:
   - platform: template
     id: orcon_humidity_auto
     name: "Orcon_Humidity_Automatic"
-    icon: "mdi:water-percent-auto"
+    icon: "mdi:water-percent"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
 
