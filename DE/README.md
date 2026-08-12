@@ -5,6 +5,17 @@ Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die 
 > [!IMPORTANT]
 > Zuerst muss die mitgelieferte neue ESPHome-Firmware aus `firmware/orconfanbox.yaml` auf den D1 mini geflasht werden. Ohne diese Firmware funktionieren die beschriebenen Entitäten und die Home-Assistant-Dashboardkarte nicht korrekt.
 
+## Neue Funktionen dieser Firmware
+
+- native Ventilatorsteuerung mit einstellbarer Drehzahl von 0 bis 100 %;
+- separate Bedienelemente für niedrige, mittlere und hohe Stufe;
+- 15-Minuten-Boost mit Abbruchfunktion;
+- automatische Feuchteregelung mit einstellbaren Start- und Stoppgrenzen;
+- automatische Bypass-Schaltung, während der Ventilator läuft;
+- Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
+- Tachometerüberwachung und Erkennung eines Ventilatorfehlers;
+- Messung der Drehzahlanforderung der originalen Orcon-Steuerung.
+
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [OrconWifiController auf Tindie ansehen](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
@@ -14,6 +25,7 @@ Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die 
 - `firmware/orconfanbox.yaml` - ESPHome-Firmware
 - `dashboard/orconfanbox-card.yaml` - Home-Assistant-Dashboardkarte
 - `INSTALLATION.md` - Installation und Inbetriebnahme
+- `FIRMWARE_INSTALLIEREN.md` - Schritt-für-Schritt-Installation auf dem D1 mini
 
 ## WLAN einrichten
 
