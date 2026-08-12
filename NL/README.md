@@ -2,16 +2,15 @@
 
 Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-integratie, dashboardkaart en documentatie.
 
-## Belangrijkste wijziging
+![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
-De ventilatorsnelheid gebruikt de native Home Assistant-entiteit `Orcon_Fan_Speed`. De oude entiteit `Orcon_Unit_Speed` is vervangen en verwijderd.
+[Bekijk de OrconWifiController op Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
 
 ## Inhoud
 
 - `firmware/orconfanbox.yaml` - ESPHome-firmware
 - `dashboard/orconfanbox-card.yaml` - Home Assistant-dashboardkaart
-- `custom_components/orcon_fanbox/` - HACS-companionintegratie
-- `Info/` - installatie, pinout, compatibiliteit en productinformatie
+- `INSTALLATIE.md` - installatie en ingebruikname
 
 ## Wi-Fi instellen
 
