@@ -68,13 +68,13 @@ fan:
     on_turn_on:
       - if:
           condition:
-            lambda: 'return id(orcon_fan_speed).speed > 1;'
+            lambda: 'return id(orcon_fan_speed).speed > 0;'
           then:
             - switch.turn_on: orcon_speed_bypass
     on_speed_set:
       - if:
           condition:
-            lambda: 'return id(orcon_fan_speed).speed > 1;'
+            lambda: 'return id(orcon_fan_speed).speed > 0;'
           then:
             - switch.turn_on: orcon_speed_bypass
           else:
@@ -152,7 +152,7 @@ script:
       - delay: 100ms
       - if:
           condition:
-            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 1);'
+            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 0);'
           then:
             - switch.turn_on: orcon_speed_bypass
 
