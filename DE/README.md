@@ -15,12 +15,12 @@ Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die 
 - separate Bedienelemente für niedrige (30 %), mittlere (60 %) und hohe Stufe (100 %);
 - 15-Minuten-Boost mit Abbruchfunktion;
 - automatische Feuchteregelung mit einstellbaren Start- und Stoppgrenzen;
-- manuelle Steuerung des Bypass-Relais über `Orcon_Unit_Bypass`;
+- manuelle Steuerung des Bypass-Relais über `Orcon_Fan_Bypass`;
 - automatische Aktivierung des Bypass, während der Ventilator läuft, und Deaktivierung beim Stoppen;
 - Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
 - Tachometermessung der tatsächlichen Ventilatordrehzahl;
 - verzögerte Erkennung eines Ventilatorfehlers, wenn der Ventilator eingeschaltet ist, aber keine Drehzahl gemessen wird;
-- Statussensor `Orcon_Fan` mit `OK` oder `Error`;
+- Statussensor `Orcon_Fan_Status` mit `OK` oder `Error`;
 - Messung der Drehzahlanforderung der originalen Orcon-Steuerung als Pulslänge;
 - einsatzbereite Home-Assistant-Dashboardkarte für Drehzahl, Ein/Aus und Bypass.
 
@@ -49,21 +49,21 @@ Die öffentliche Firmware enthält keine persönlichen WLAN-Zugangsdaten. Nach d
 Die Firmware stellt diese siebzehn Entitäten bereit:
 
 - `fan.orconfanbox_orcon_fan_speed` - Ventilator Ein/Aus und Drehzahl 0-100%;
-- `switch.orconfanbox_orcon_unit_bypass` - manueller Bypass;
-- `switch.orconfanbox_orcon_automatic_humidity` - automatische Feuchteregelung;
+- `switch.orconfanbox_orcon_fan_bypass` - manueller Bypass;
+- `switch.orconfanbox_orcon_humidity_automatic` - automatische Feuchteregelung;
 - `button.orconfanbox_orcon_fan_low` - niedrige Stufe, 30%;
 - `button.orconfanbox_orcon_fan_medium` - mittlere Stufe, 60%;
 - `button.orconfanbox_orcon_fan_high` - hohe Stufe, 100%;
-- `button.orconfanbox_orcon_boost_15_minutes` - 15-Minuten-Boost;
-- `button.orconfanbox_orcon_cancel_boost` - Boost abbrechen und Ventilator stoppen;
+- `button.orconfanbox_orcon_fan_boost_15_minutes` - 15-Minuten-Boost;
+- `button.orconfanbox_orcon_fan_boost_cancel` - Boost abbrechen und Ventilator stoppen;
 - `number.orconfanbox_orcon_humidity_start` - Startgrenze der Feuchteregelung;
 - `number.orconfanbox_orcon_humidity_stop` - Stoppgrenze der Feuchteregelung;
 - `sensor.orconfanbox_orcon_air_temp` - Lufttemperatur;
 - `sensor.orconfanbox_orcon_air_pressure` - Luftdruck;
 - `sensor.orconfanbox_orcon_air_humidity` - Luftfeuchtigkeit;
-- `sensor.orconfanbox_orcon_tacho` - tatsächliche Ventilatordrehzahl;
-- `sensor.orconfanbox_orcon_speed_requested` - Anforderung der Originalsteuerung;
-- `sensor.orconfanbox_orcon_fan` - Ventilatorstatus `OK` oder `Error`.
+- `sensor.orconfanbox_orcon_fan_tacho` - tatsächliche Ventilatordrehzahl;
+- `sensor.orconfanbox_orcon_fan_speed_requested` - Anforderung der Originalsteuerung;
+- `sensor.orconfanbox_orcon_fan_status` - Ventilatorstatus `OK` oder `Error`.
 - `update.orconfanbox_firmware` - standardmäßig deaktivierte ESPHome-Entität für Firmware-Updates.
 
 Home Assistant kann abhängig von der Gerätebenennung leicht abweichende Entitäts-IDs erzeugen. Deshalb immer die Entitätsliste des ESPHome-Geräts prüfen.
