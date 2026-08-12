@@ -1,5 +1,7 @@
 # Orcon MVS-15 Home Assistant
 
+![Orcon MVS-15 ventilation unit](Info/image.png)
+
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [OrconWifiController product page on Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
