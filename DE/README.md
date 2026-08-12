@@ -7,14 +7,22 @@ Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die 
 
 ## Neue Funktionen dieser Firmware
 
+- erste WLAN-Einrichtung über den temporären Zugangspunkt **OrconFanBox Setup** und das Captive Portal;
+- direkte Home-Assistant-Verbindung über die native ESPHome-API;
+- spätere Firmware-Updates über OTA, ohne den D1 mini erneut über USB anzuschließen;
 - native Ventilatorsteuerung mit einstellbarer Drehzahl von 0 bis 100 %;
-- separate Bedienelemente für niedrige, mittlere und hohe Stufe;
+- PWM-Drehzahlregelung über D6;
+- separate Bedienelemente für niedrige (30 %), mittlere (60 %) und hohe Stufe (100 %);
 - 15-Minuten-Boost mit Abbruchfunktion;
 - automatische Feuchteregelung mit einstellbaren Start- und Stoppgrenzen;
-- automatische Bypass-Schaltung, während der Ventilator läuft;
+- manuelle Steuerung des Bypass-Relais über `Orcon_Unit_Bypass`;
+- automatische Aktivierung des Bypass, während der Ventilator läuft, und Deaktivierung beim Stoppen;
 - Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
-- Tachometerüberwachung und Erkennung eines Ventilatorfehlers;
-- Messung der Drehzahlanforderung der originalen Orcon-Steuerung.
+- Tachometermessung der tatsächlichen Ventilatordrehzahl;
+- verzögerte Erkennung eines Ventilatorfehlers, wenn der Ventilator eingeschaltet ist, aber keine Drehzahl gemessen wird;
+- Statussensor `Orcon_Fan` mit `OK` oder `Error`;
+- Messung der Drehzahlanforderung der originalen Orcon-Steuerung als Pulslänge;
+- einsatzbereite Home-Assistant-Dashboardkarte für Drehzahl, Ein/Aus und Bypass.
 
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
