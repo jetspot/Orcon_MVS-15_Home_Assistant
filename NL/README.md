@@ -5,6 +5,17 @@ Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-int
 > [!IMPORTANT]
 > Zet eerst de meegeleverde nieuwe ESPHome-firmware uit `firmware/orconfanbox.yaml` op de D1 mini. Zonder deze firmware werken de beschreven entiteiten en de Home Assistant-dashboardkaart niet correct.
 
+## Nieuwe functies in deze firmware
+
+- native ventilatorbediening met een instelbare snelheid van 0 tot 100%;
+- aparte knoppen voor laag, middel en hoog;
+- een booststand van 15 minuten met een annuleerknop;
+- automatische vochtregeling met instelbare start- en stopgrenzen;
+- automatisch inschakelen van de bypass wanneer de ventilator draait;
+- meting van temperatuur, luchtvochtigheid en luchtdruk met een optionele BME280;
+- tachometermeting en detectie van een ventilatorstoring;
+- uitlezing van het snelheidsverzoek van de originele Orcon-bediening.
+
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [Bekijk de OrconWifiController op Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
@@ -14,6 +25,7 @@ Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-int
 - `firmware/orconfanbox.yaml` - ESPHome-firmware
 - `dashboard/orconfanbox-card.yaml` - Home Assistant-dashboardkaart
 - `INSTALLATIE.md` - installatie en ingebruikname
+- `FIRMWARE_INSTALLEREN.md` - stap voor stap firmware op de D1 mini zetten
 
 ## Wi-Fi instellen
 
