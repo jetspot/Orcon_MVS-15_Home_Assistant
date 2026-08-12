@@ -44,16 +44,29 @@ De openbare firmware bevat geen persoonlijke Wi-Fi-gegevens. Na de eerste start:
 3. Selecteer het eigen Wi-Fi-netwerk en voer het wachtwoord in.
 4. Na de herstart is het apparaat normaal bereikbaar als `orconfanbox.local`.
 
-## Home Assistant
+## Home Assistant-entiteiten
 
-Gebruik doorgaans deze entiteiten:
+De firmware biedt deze zeventien entiteiten aan:
 
-```text
-fan.orconfanbox_orcon_fan_speed
-switch.orconfanbox_orcon_unit_bypass
-sensor.orconfanbox_orcon_tacho
-sensor.orconfanbox_orcon_speed_requested
-```
+- `fan.orconfanbox_orcon_fan_speed` - ventilator aan/uit en snelheid 0-100%;
+- `switch.orconfanbox_orcon_unit_bypass` - handmatige bypass;
+- `switch.orconfanbox_orcon_automatic_humidity` - automatische vochtregeling;
+- `button.orconfanbox_orcon_fan_low` - lage stand, 30%;
+- `button.orconfanbox_orcon_fan_medium` - middelste stand, 60%;
+- `button.orconfanbox_orcon_fan_high` - hoge stand, 100%;
+- `button.orconfanbox_orcon_boost_15_minutes` - boost gedurende 15 minuten;
+- `button.orconfanbox_orcon_cancel_boost` - boost annuleren en ventilator stoppen;
+- `number.orconfanbox_orcon_humidity_start` - startgrens automatische vochtregeling;
+- `number.orconfanbox_orcon_humidity_stop` - stopgrens automatische vochtregeling;
+- `sensor.orconfanbox_orcon_air_temp` - luchttemperatuur;
+- `sensor.orconfanbox_orcon_air_pressure` - luchtdruk;
+- `sensor.orconfanbox_orcon_air_humidity` - luchtvochtigheid;
+- `sensor.orconfanbox_orcon_tacho` - werkelijk ventilatortoerental;
+- `sensor.orconfanbox_orcon_speed_requested` - verzoek van de originele bediening;
+- `sensor.orconfanbox_orcon_fan` - ventilatorstatus `OK` of `Error`.
+- `update.orconfanbox_firmware` - standaard uitgeschakelde ESPHome-entiteit voor firmware-updates.
+
+Home Assistant kan afhankelijk van de naamgeving iets andere entiteits-ID's genereren. Controleer daarom altijd de entiteitslijst van het ESPHome-apparaat.
 
 De firmware schakelt de bypass automatisch in wanneer de ventilator draait en uit wanneer de ventilator stopt.
 
