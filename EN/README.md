@@ -2,6 +2,9 @@
 
 Complete English version of the OrconFanBox firmware, Home Assistant integration, dashboard card, and documentation.
 
+> [!IMPORTANT]
+> First flash the supplied new ESPHome firmware from `firmware/orconfanbox.yaml` to the D1 mini. Without this firmware, the documented entities and Home Assistant dashboard card will not work correctly.
+
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [View the OrconWifiController on Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
