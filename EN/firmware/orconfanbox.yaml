@@ -47,6 +47,12 @@ switch:
     icon: "mdi:water-percent"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 11
+    turn_off_action:
+      - fan.turn_off: orcon_fan_speed
 
 fan:
   - platform: speed
@@ -185,7 +191,9 @@ interval:
           condition:
             lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state <= id(orcon_humidity_stop).state;'
           then:
-            - fan.turn_off: orcon_fan_speed
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: 11
 
 binary_sensor:
   - platform: template
