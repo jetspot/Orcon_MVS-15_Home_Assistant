@@ -46,9 +46,10 @@ The public firmware contains no personal Wi-Fi credentials. After first boot:
 
 ## Home Assistant entities
 
-The firmware exposes these nineteen entities:
+The firmware exposes these twenty entities:
 
 - `fan.orconfanbox_orcon_fan_speed` - fan power and speed from 0-100%;
+- `sensor.orconfanbox_orcon_fan_percentage` - current configured fan speed as a percentage;
 - `switch.orconfanbox_orcon_fan_bypass` - manual bypass;
 - `switch.orconfanbox_orcon_humidity_automatic` - automatic humidity control;
 - `button.orconfanbox_orcon_fan_low` - low speed, 30%;

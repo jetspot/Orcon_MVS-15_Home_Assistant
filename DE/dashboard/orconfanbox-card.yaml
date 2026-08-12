@@ -55,6 +55,12 @@ cards:
         vertical: false
         hide_state: false
       - type: tile
+        entity: sensor.orconfanbox_orcon_fan_percentage
+        name: Aktuelle Lüfterstufe
+        icon: mdi:percent-circle-outline
+        vertical: false
+        hide_state: false
+      - type: tile
         entity: sensor.orconfanbox_orcon_fan_status
         name: Lüfterstatus
         icon: mdi:fan-alert

@@ -66,7 +66,23 @@ fan:
     speed_count: 100
     restore_mode: ALWAYS_OFF
     on_turn_on:
-      - switch.turn_on: orcon_speed_bypass
+      - if:
+          condition:
+            lambda: 'return id(orcon_fan_speed).speed > 1;'
+          then:
+            - switch.turn_on: orcon_speed_bypass
+    on_speed_set:
+      - if:
+          condition:
+            lambda: 'return id(orcon_fan_speed).speed > 1;'
+          then:
+            - switch.turn_on: orcon_speed_bypass
+          else:
+            - if:
+                condition:
+                  switch.is_off: orcon_humidity_auto
+                then:
+                  - switch.turn_off: orcon_speed_bypass
     on_turn_off:
       - if:
           condition:
@@ -80,6 +96,19 @@ fan:
             - switch.turn_off: orcon_speed_bypass
 
 sensor:
+  - platform: template
+    id: orcon_fan_percentage
+    name: "Orcon_Fan_Percentage"
+    icon: "mdi:percent-circle-outline"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (!id(orcon_fan_speed).state) {
+        return 0.0;
+      }
+      return id(orcon_fan_speed).speed;
+
   - platform: pulse_counter
     pin: D5
     id: orcon_tacho
@@ -123,7 +152,7 @@ script:
       - delay: 100ms
       - if:
           condition:
-            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 0);'
+            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 1);'
           then:
             - switch.turn_on: orcon_speed_bypass
 
