@@ -1,41 +1,86 @@
 # Orcon MVS-15 Home Assistant
 
-ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation unit with Home Assistant.
-
-> [!IMPORTANT]
-> The supplied ESPHome firmware must be flashed to the D1 mini before using this Home Assistant configuration. / De meegeleverde ESPHome-firmware moet eerst op de D1 mini worden gezet voordat deze Home Assistant-configuratie kan worden gebruikt. / Die mitgelieferte ESPHome-Firmware muss zuerst auf den D1 mini geflasht werden.
-
-## New firmware functions / Nieuwe firmwarefuncties / Neue Firmwarefunktionen
-
-- first-time Wi-Fi provisioning through the temporary **OrconFanBox Setup** access point and captive portal;
-- direct Home Assistant connection through the native ESPHome API;
-- subsequent firmware updates over OTA without reconnecting the D1 mini over USB;
-- native fan control with a percentage speed setting;
-- PWM speed control through D6;
-- separate low (30%), medium (60%), and high (100%) controls;
-- a 15-minute boost with a cancel control;
-- automatic humidity control with adjustable start and stop thresholds;
-- manual bypass relay control through `Orcon_Unit_Bypass`;
-- automatic bypass activation while the fan is running and deactivation when it stops;
-- temperature, humidity, and pressure measurements with an optional BME280;
-- tachometer measurement of the actual fan speed;
-- delayed fan-failure detection when the fan is enabled but no speed is measured;
-- `Orcon_Fan` status sensor reporting `OK` or `Error`;
-- measurement of the original Orcon control's speed request as pulse length;
-- ready-to-use Home Assistant dashboard cards in Dutch, English, and German.
-
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
 [OrconWifiController product page on Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
 
-## Choose your language / Kies je taal
+---
 
-- [Nederlands](NL/README.md)
-- [English](EN/README.md)
-- [Deutsch](DE/README.md)
+## Nederlands
 
-Each language folder contains the guide, installation instructions, dashboard card, and the same unmodified ESPHome firmware.
+ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilatie-unit met Home Assistant.
 
-Elke taalmap bevat de handleiding, installatie-instructies, dashboardkaart en dezelfde ongewijzigde ESPHome-firmware.
+> [!IMPORTANT]
+> Zet eerst de meegeleverde nieuwe ESPHome-firmware op de D1 mini. Zonder deze firmware werken de beschreven entiteiten en dashboardkaart niet correct.
 
-Jeder Sprachordner enthält die Anleitung, Installationshinweise, Dashboardkarte und dieselbe unveränderte ESPHome-Firmware.
+### Functies
+
+- Wi-Fi-configuratie via **OrconFanBox Setup** en de captive portal;
+- native ESPHome API en draadloze OTA-updates;
+- ventilatorsnelheid instelbaar van 0 tot 100% via PWM op D6;
+- aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
+- booststand van 15 minuten met annuleerknop;
+- automatische vochtregeling met instelbare start- en stopgrenzen;
+- handmatige en automatische bediening van het bypassrelais;
+- temperatuur-, luchtvochtigheids- en luchtdrukmeting met een optionele BME280;
+- tachometermeting van het werkelijke toerental;
+- vertraagde detectie van een ventilatorstoring;
+- statussensor `Orcon_Fan` met `OK` of `Error`;
+- uitlezing van het verzoek van de originele Orcon-bediening als pulslengte;
+- kant-en-klare Home Assistant-dashboardkaart.
+
+[Open de volledige Nederlandse handleiding](NL/README.md)
+
+---
+
+## English
+
+ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation unit with Home Assistant.
+
+> [!IMPORTANT]
+> First flash the supplied new ESPHome firmware to the D1 mini. Without this firmware, the documented entities and dashboard card will not work correctly.
+
+### Features
+
+- Wi-Fi provisioning through **OrconFanBox Setup** and the captive portal;
+- native ESPHome API and wireless OTA updates;
+- fan speed adjustable from 0 to 100% through PWM on D6;
+- separate low (30%), medium (60%), and high (100%) controls;
+- 15-minute boost with a cancel control;
+- automatic humidity control with adjustable start and stop thresholds;
+- manual and automatic bypass relay control;
+- temperature, humidity, and pressure measurements with an optional BME280;
+- tachometer measurement of the actual fan speed;
+- delayed fan-failure detection;
+- `Orcon_Fan` status sensor reporting `OK` or `Error`;
+- measurement of the original Orcon control request as pulse length;
+- ready-to-use Home Assistant dashboard card.
+
+[Open the complete English guide](EN/README.md)
+
+---
+
+## Deutsch
+
+ESPHome-Firmware und Dokumentation zur Steuerung einer Orcon-MVS-15-Lüftungsanlage mit Home Assistant.
+
+> [!IMPORTANT]
+> Zuerst muss die mitgelieferte neue ESPHome-Firmware auf den D1 mini geflasht werden. Ohne diese Firmware funktionieren die beschriebenen Entitäten und die Dashboardkarte nicht korrekt.
+
+### Funktionen
+
+- WLAN-Einrichtung über **OrconFanBox Setup** und das Captive Portal;
+- native ESPHome-API und drahtlose OTA-Updates;
+- Ventilatordrehzahl von 0 bis 100% über PWM an D6 einstellbar;
+- separate Bedienelemente für niedrig (30%), mittel (60%) und hoch (100%);
+- 15-Minuten-Boost mit Abbruchfunktion;
+- automatische Feuchteregelung mit einstellbaren Start- und Stoppgrenzen;
+- manuelle und automatische Steuerung des Bypass-Relais;
+- Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
+- Tachometermessung der tatsächlichen Ventilatordrehzahl;
+- verzögerte Erkennung eines Ventilatorfehlers;
+- Statussensor `Orcon_Fan` mit `OK` oder `Error`;
+- Messung der Anforderung der originalen Orcon-Steuerung als Pulslänge;
+- einsatzbereite Home-Assistant-Dashboardkarte.
+
+[Vollständige deutsche Anleitung öffnen](DE/README.md)
