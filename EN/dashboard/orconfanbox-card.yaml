@@ -1,0 +1,18 @@
+type: vertical-stack
+cards:
+  - type: tile
+    entity: fan.orconfanbox_orcon_fan_speed
+    name: Orcon fan speed
+    icon: mdi:fan
+    features_position: bottom
+    vertical: false
+    features:
+      - type: fan-speed
+  - type: tile
+    entity: fan.orconfanbox_orcon_fan_speed
+    name: Orcon fan
+    icon: mdi:power
+  - type: tile
+    entity: switch.orconfanbox_orcon_unit_bypass
+    name: Orcon bypass
+    icon: mdi:swap-horizontal
