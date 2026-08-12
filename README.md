@@ -31,6 +31,10 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 
 [Open the complete English guide](EN/README.md)
 
+### All 17 entities
+
+`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho`, and `Firmware`.
+
 ---
 
 ## Nederlands
@@ -58,6 +62,10 @@ ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilat
 
 [Open de volledige Nederlandse handleiding](NL/README.md)
 
+### Alle 17 entiteiten
+
+`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho` en `Firmware`.
+
 ---
 
 ## Deutsch
@@ -84,3 +92,7 @@ ESPHome-Firmware und Dokumentation zur Steuerung einer Orcon-MVS-15-Lüftungsanl
 - einsatzbereite Home-Assistant-Dashboardkarte.
 
 [Vollständige deutsche Anleitung öffnen](DE/README.md)
+
+### Alle 17 Entitäten
+
+`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho` und `Firmware`.
