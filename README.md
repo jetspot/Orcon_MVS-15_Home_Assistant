@@ -25,7 +25,7 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 - temperature, humidity, and pressure measurements with an optional BME280;
 - tachometer measurement of the actual fan speed;
 - delayed fan-failure detection;
-- `Orcon_Fan` status sensor reporting `OK` or `Error`;
+- `Orcon_Fan_Status` sensor reporting `OK` or `Error`;
 - measurement of the original Orcon control request as pulse length;
 - ready-to-use Home Assistant dashboard card.
 
@@ -33,7 +33,7 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 
 ### All 17 entities
 
-`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho`, and `Firmware`.
+`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, and `Firmware`.
 
 ---
 
@@ -56,7 +56,7 @@ ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilat
 - temperatuur-, luchtvochtigheids- en luchtdrukmeting met een optionele BME280;
 - tachometermeting van het werkelijke toerental;
 - vertraagde detectie van een ventilatorstoring;
-- statussensor `Orcon_Fan` met `OK` of `Error`;
+- statussensor `Orcon_Fan_Status` met `OK` of `Error`;
 - uitlezing van het verzoek van de originele Orcon-bediening als pulslengte;
 - kant-en-klare Home Assistant-dashboardkaart.
 
@@ -64,7 +64,7 @@ ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilat
 
 ### Alle 17 entiteiten
 
-`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho` en `Firmware`.
+`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop` en `Firmware`.
 
 ---
 
@@ -87,7 +87,7 @@ ESPHome-Firmware und Dokumentation zur Steuerung einer Orcon-MVS-15-Lüftungsanl
 - Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
 - Tachometermessung der tatsächlichen Ventilatordrehzahl;
 - verzögerte Erkennung eines Ventilatorfehlers;
-- Statussensor `Orcon_Fan` mit `OK` oder `Error`;
+- Statussensor `Orcon_Fan_Status` mit `OK` oder `Error`;
 - Messung der Anforderung der originalen Orcon-Steuerung als Pulslänge;
 - einsatzbereite Home-Assistant-Dashboardkarte.
 
@@ -95,4 +95,4 @@ ESPHome-Firmware und Dokumentation zur Steuerung einer Orcon-MVS-15-Lüftungsanl
 
 ### Alle 17 Entitäten
 
-`Orcon_Automatic_Humidity`, `Orcon_Boost_15_Minutes`, `Orcon_Cancel_Boost`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, `Orcon_Unit_Bypass`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan`, `Orcon_Speed_Requested`, `Orcon_Tacho` und `Firmware`.
+`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop` und `Firmware`.
