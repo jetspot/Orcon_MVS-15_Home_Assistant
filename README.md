@@ -10,7 +10,10 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 
 - [Nederlands](NL/README.md)
 - [English](EN/README.md)
+- [Deutsch](DE/README.md)
 
 Each language folder contains the guide, installation instructions, dashboard card, and the same unmodified ESPHome firmware.
 
 Elke taalmap bevat de handleiding, installatie-instructies, dashboardkaart en dezelfde ongewijzigde ESPHome-firmware.
+
+Jeder Sprachordner enthält die Anleitung, Installationshinweise, Dashboardkarte und dieselbe unveränderte ESPHome-Firmware.
