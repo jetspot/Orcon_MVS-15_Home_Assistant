@@ -1,51 +1,78 @@
-type: vertical-stack
+type: grid
+columns: 3
+square: false
 cards:
-  - type: entities
-    title: Fan controls
-    show_header_toggle: false
-    entities:
-      - entity: fan.orconfanbox_orcon_fan_speed
-        name: Fan speed
-      - entity: switch.orconfanbox_orcon_fan_bypass
-        name: Bypass
-      - entity: button.orconfanbox_orcon_fan_low
-        name: Low
-      - entity: button.orconfanbox_orcon_fan_medium
-        name: Medium
-      - entity: button.orconfanbox_orcon_fan_high
-        name: High
-      - entity: button.orconfanbox_orcon_fan_boost_15_minutes
-        name: 15-minute boost
-      - entity: button.orconfanbox_orcon_fan_boost_cancel
-        name: Cancel boost
-  - type: entities
-    title: Automatic humidity control
-    show_header_toggle: false
-    entities:
-      - entity: switch.orconfanbox_orcon_humidity_automatic
-        name: Automatic humidity control
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Fan controls
+        icon: mdi:fan
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: fan.orconfanbox_orcon_fan_speed
+            name: Fan speed
+          - entity: switch.orconfanbox_orcon_fan_bypass
+            name: Bypass
+          - entity: button.orconfanbox_orcon_fan_low
+            name: Low
+          - entity: button.orconfanbox_orcon_fan_medium
+            name: Medium
+          - entity: button.orconfanbox_orcon_fan_high
+            name: High
+          - entity: button.orconfanbox_orcon_fan_boost_15_minutes
+            name: 15-minute boost
+          - entity: button.orconfanbox_orcon_fan_boost_cancel
+            name: Cancel boost
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Automatic humidity control
         icon: mdi:water-percent
-      - entity: number.orconfanbox_orcon_humidity_start
-        name: Start threshold
-      - entity: number.orconfanbox_orcon_humidity_stop
-        name: Stop threshold
-  - type: entities
-    title: Air measurements
-    entities:
-      - entity: sensor.orconfanbox_orcon_air_temp
-        name: Temperature
-      - entity: sensor.orconfanbox_orcon_air_humidity
-        name: Humidity
-      - entity: sensor.orconfanbox_orcon_air_pressure
-        name: Air pressure
-  - type: entities
-    title: Status and diagnostics
-    entities:
-      - entity: sensor.orconfanbox_orcon_fan_status
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: switch.orconfanbox_orcon_humidity_automatic
+            name: Automatic humidity control
+            icon: mdi:water-percent
+          - entity: number.orconfanbox_orcon_humidity_start
+            name: Start threshold
+          - entity: number.orconfanbox_orcon_humidity_stop
+            name: Stop threshold
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_tacho
+        name: Actual fan speed
+        icon: mdi:speedometer
+        vertical: false
+        hide_state: false
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_status
         name: Fan status
-      - entity: sensor.orconfanbox_orcon_fan_tacho
-        name: Actual speed
-      - entity: sensor.orconfanbox_orcon_fan_speed_requested
+        icon: mdi:fan-alert
+        vertical: false
+        hide_state: false
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Air measurements
+        icon: mdi:home-thermometer-outline
+      - type: entities
+        entities:
+          - entity: sensor.orconfanbox_orcon_air_temp
+            name: Temperature
+          - entity: sensor.orconfanbox_orcon_air_humidity
+            name: Humidity
+          - entity: sensor.orconfanbox_orcon_air_pressure
+            name: Air pressure
+      - type: tile
+        entity: sensor.orconfanbox_orcon_fan_speed_requested
         name: Requested speed
-      - entity: update.orconfanbox_firmware
+        icon: mdi:remote
+        vertical: false
+        hide_state: false
+      - type: tile
+        entity: update.orconfanbox_firmware
         name: Firmware
+        icon: mdi:update
+        vertical: false
+        hide_state: false
