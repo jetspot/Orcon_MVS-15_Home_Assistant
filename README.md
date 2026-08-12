@@ -33,10 +33,28 @@ ESPHome firmware and documentation for controlling an Orcon MVS-15 ventilation u
 
 [Open the complete English guide](EN/README.md)
 
-### All 17 entities
+The firmware exposes these seventeen entities:
 
-`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop`, and `Firmware`.
+fan.orconfanbox_orcon_fan_speed - fan power and speed from 0-100%;
+switch.orconfanbox_orcon_fan_bypass - manual bypass;
+switch.orconfanbox_orcon_humidity_automatic - automatic humidity control;
+button.orconfanbox_orcon_fan_low - low speed, 30%;
+button.orconfanbox_orcon_fan_medium - medium speed, 60%;
+button.orconfanbox_orcon_fan_high - high speed, 100%;
+button.orconfanbox_orcon_fan_boost_15_minutes - 15-minute boost;
+button.orconfanbox_orcon_fan_boost_cancel - cancel boost and stop the fan;
+number.orconfanbox_orcon_humidity_start - automatic-humidity start threshold;
+number.orconfanbox_orcon_humidity_stop - automatic-humidity stop threshold;
+sensor.orconfanbox_orcon_air_temp - air temperature;
+sensor.orconfanbox_orcon_air_pressure - air pressure;
+sensor.orconfanbox_orcon_air_humidity - air humidity;
+sensor.orconfanbox_orcon_fan_tacho - actual fan speed;
+sensor.orconfanbox_orcon_fan_speed_requested - original-control request;
+sensor.orconfanbox_orcon_fan_status - fan status OK or Error.
+update.orconfanbox_firmware - standard disabled ESPHome entity for firmware updates.
+Home Assistant may generate slightly different entity IDs depending on device naming. Always verify the entity list of the ESPHome device.
 
+The firmware automatically enables the bypass while the fan is running and disables it when the fan stops.
 ---
 
 ## Nederlands
@@ -64,9 +82,28 @@ ESPHome-firmware en documentatie voor het bedienen van een Orcon MVS-15-ventilat
 
 [Open de volledige Nederlandse handleiding](NL/README.md)
 
-### Alle 17 entiteiten
+The firmware exposes these seventeen entities:
 
-`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop` en `Firmware`.
+fan.orconfanbox_orcon_fan_speed - fan power and speed from 0-100%;
+switch.orconfanbox_orcon_fan_bypass - manual bypass;
+switch.orconfanbox_orcon_humidity_automatic - automatic humidity control;
+button.orconfanbox_orcon_fan_low - low speed, 30%;
+button.orconfanbox_orcon_fan_medium - medium speed, 60%;
+button.orconfanbox_orcon_fan_high - high speed, 100%;
+button.orconfanbox_orcon_fan_boost_15_minutes - 15-minute boost;
+button.orconfanbox_orcon_fan_boost_cancel - cancel boost and stop the fan;
+number.orconfanbox_orcon_humidity_start - automatic-humidity start threshold;
+number.orconfanbox_orcon_humidity_stop - automatic-humidity stop threshold;
+sensor.orconfanbox_orcon_air_temp - air temperature;
+sensor.orconfanbox_orcon_air_pressure - air pressure;
+sensor.orconfanbox_orcon_air_humidity - air humidity;
+sensor.orconfanbox_orcon_fan_tacho - actual fan speed;
+sensor.orconfanbox_orcon_fan_speed_requested - original-control request;
+sensor.orconfanbox_orcon_fan_status - fan status OK or Error.
+update.orconfanbox_firmware - standard disabled ESPHome entity for firmware updates.
+Home Assistant may generate slightly different entity IDs depending on device naming. Always verify the entity list of the ESPHome device.
+
+The firmware automatically enables the bypass while the fan is running and disables it when the fan stops.
 
 ---
 
@@ -95,6 +132,25 @@ ESPHome-Firmware und Dokumentation zur Steuerung einer Orcon-MVS-15-Lüftungsanl
 
 [Vollständige deutsche Anleitung öffnen](DE/README.md)
 
-### Alle 17 Entitäten
+The firmware exposes these seventeen entities:
 
-`Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Air_Temp`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel`, `Orcon_Fan_Bypass`, `Orcon_Fan_High`, `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_Speed`, `Orcon_Fan_Speed_Requested`, `Orcon_Fan_Status`, `Orcon_Fan_Tacho`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Start`, `Orcon_Humidity_Stop` und `Firmware`.
+fan.orconfanbox_orcon_fan_speed - fan power and speed from 0-100%;
+switch.orconfanbox_orcon_fan_bypass - manual bypass;
+switch.orconfanbox_orcon_humidity_automatic - automatic humidity control;
+button.orconfanbox_orcon_fan_low - low speed, 30%;
+button.orconfanbox_orcon_fan_medium - medium speed, 60%;
+button.orconfanbox_orcon_fan_high - high speed, 100%;
+button.orconfanbox_orcon_fan_boost_15_minutes - 15-minute boost;
+button.orconfanbox_orcon_fan_boost_cancel - cancel boost and stop the fan;
+number.orconfanbox_orcon_humidity_start - automatic-humidity start threshold;
+number.orconfanbox_orcon_humidity_stop - automatic-humidity stop threshold;
+sensor.orconfanbox_orcon_air_temp - air temperature;
+sensor.orconfanbox_orcon_air_pressure - air pressure;
+sensor.orconfanbox_orcon_air_humidity - air humidity;
+sensor.orconfanbox_orcon_fan_tacho - actual fan speed;
+sensor.orconfanbox_orcon_fan_speed_requested - original-control request;
+sensor.orconfanbox_orcon_fan_status - fan status OK or Error.
+update.orconfanbox_firmware - standard disabled ESPHome entity for firmware updates.
+Home Assistant may generate slightly different entity IDs depending on device naming. Always verify the entity list of the ESPHome device.
+
+The firmware automatically enables the bypass while the fan is running and disables it when the fan stops.
