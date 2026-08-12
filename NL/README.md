@@ -15,12 +15,12 @@ Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-int
 - aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
 - een booststand van 15 minuten met een annuleerknop;
 - automatische vochtregeling met instelbare start- en stopgrenzen;
-- handmatige bediening van het bypassrelais via `Orcon_Unit_Bypass`;
+- handmatige bediening van het bypassrelais via `Orcon_Fan_Bypass`;
 - automatisch inschakelen van de bypass wanneer de ventilator draait en uitschakelen wanneer hij stopt;
 - meting van temperatuur, luchtvochtigheid en luchtdruk met een optionele BME280;
 - tachometermeting van het werkelijke ventilatortoerental;
 - vertraagde detectie van een ventilatorstoring wanneer de ventilator is ingeschakeld maar geen toerental wordt gemeten;
-- statussensor `Orcon_Fan` met `OK` of `Error`;
+- statussensor `Orcon_Fan_Status` met `OK` of `Error`;
 - uitlezing van het snelheidsverzoek van de originele Orcon-bediening als pulslengte;
 - kant-en-klare Home Assistant-dashboardkaart voor snelheid, aan/uit en bypass.
 
@@ -49,21 +49,21 @@ De openbare firmware bevat geen persoonlijke Wi-Fi-gegevens. Na de eerste start:
 De firmware biedt deze zeventien entiteiten aan:
 
 - `fan.orconfanbox_orcon_fan_speed` - ventilator aan/uit en snelheid 0-100%;
-- `switch.orconfanbox_orcon_unit_bypass` - handmatige bypass;
-- `switch.orconfanbox_orcon_automatic_humidity` - automatische vochtregeling;
+- `switch.orconfanbox_orcon_fan_bypass` - handmatige bypass;
+- `switch.orconfanbox_orcon_humidity_automatic` - automatische vochtregeling;
 - `button.orconfanbox_orcon_fan_low` - lage stand, 30%;
 - `button.orconfanbox_orcon_fan_medium` - middelste stand, 60%;
 - `button.orconfanbox_orcon_fan_high` - hoge stand, 100%;
-- `button.orconfanbox_orcon_boost_15_minutes` - boost gedurende 15 minuten;
-- `button.orconfanbox_orcon_cancel_boost` - boost annuleren en ventilator stoppen;
+- `button.orconfanbox_orcon_fan_boost_15_minutes` - boost gedurende 15 minuten;
+- `button.orconfanbox_orcon_fan_boost_cancel` - boost annuleren en ventilator stoppen;
 - `number.orconfanbox_orcon_humidity_start` - startgrens automatische vochtregeling;
 - `number.orconfanbox_orcon_humidity_stop` - stopgrens automatische vochtregeling;
 - `sensor.orconfanbox_orcon_air_temp` - luchttemperatuur;
 - `sensor.orconfanbox_orcon_air_pressure` - luchtdruk;
 - `sensor.orconfanbox_orcon_air_humidity` - luchtvochtigheid;
-- `sensor.orconfanbox_orcon_tacho` - werkelijk ventilatortoerental;
-- `sensor.orconfanbox_orcon_speed_requested` - verzoek van de originele bediening;
-- `sensor.orconfanbox_orcon_fan` - ventilatorstatus `OK` of `Error`.
+- `sensor.orconfanbox_orcon_fan_tacho` - werkelijk ventilatortoerental;
+- `sensor.orconfanbox_orcon_fan_speed_requested` - verzoek van de originele bediening;
+- `sensor.orconfanbox_orcon_fan_status` - ventilatorstatus `OK` of `Error`.
 - `update.orconfanbox_firmware` - standaard uitgeschakelde ESPHome-entiteit voor firmware-updates.
 
 Home Assistant kan afhankelijk van de naamgeving iets andere entiteits-ID's genereren. Controleer daarom altijd de entiteitslijst van het ESPHome-apparaat.
