@@ -7,14 +7,22 @@ Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-int
 
 ## Nieuwe functies in deze firmware
 
+- eerste Wi-Fi-configuratie via het tijdelijke accesspoint **OrconFanBox Setup** en de captive portal;
+- directe koppeling met Home Assistant via de native ESPHome API;
+- volgende firmware-updates via OTA, zonder de D1 mini opnieuw via USB aan te sluiten;
 - native ventilatorbediening met een instelbare snelheid van 0 tot 100%;
-- aparte knoppen voor laag, middel en hoog;
+- PWM-snelheidsregeling via D6;
+- aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
 - een booststand van 15 minuten met een annuleerknop;
 - automatische vochtregeling met instelbare start- en stopgrenzen;
-- automatisch inschakelen van de bypass wanneer de ventilator draait;
+- handmatige bediening van het bypassrelais via `Orcon_Unit_Bypass`;
+- automatisch inschakelen van de bypass wanneer de ventilator draait en uitschakelen wanneer hij stopt;
 - meting van temperatuur, luchtvochtigheid en luchtdruk met een optionele BME280;
-- tachometermeting en detectie van een ventilatorstoring;
-- uitlezing van het snelheidsverzoek van de originele Orcon-bediening.
+- tachometermeting van het werkelijke ventilatortoerental;
+- vertraagde detectie van een ventilatorstoring wanneer de ventilator is ingeschakeld maar geen toerental wordt gemeten;
+- statussensor `Orcon_Fan` met `OK` of `Error`;
+- uitlezing van het snelheidsverzoek van de originele Orcon-bediening als pulslengte;
+- kant-en-klare Home Assistant-dashboardkaart voor snelheid, aan/uit en bypass.
 
 ![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
 
