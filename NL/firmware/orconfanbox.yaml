@@ -1,0 +1,212 @@
+esphome:
+  name: orconfanbox
+  friendly_name: OrconFanBox
+
+esp8266:
+  board: d1_mini
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+# No personal network is compiled into distributable firmware.
+# On first boot, connect to "OrconFanBox Setup" and choose a Wi-Fi network.
+wifi:
+  ap:
+    ssid: "OrconFanBox Setup"
+
+captive_portal:
+
+i2c:
+  sda: D2
+  scl: D1
+  scan: true
+  frequency: 50kHz
+
+output:
+  - platform: esp8266_pwm
+    id: orcon_pwm_out
+    pin: D6
+    frequency: 1000 Hz
+    inverted: true
+
+switch:
+  - platform: gpio
+    id: orcon_speed_bypass
+    name: "Orcon_Unit_Bypass"
+    icon: "mdi:swap-horizontal"
+    pin: D8
+    restore_mode: ALWAYS_OFF
+
+  - platform: template
+    id: orcon_humidity_auto
+    name: "Orcon_Automatic_Humidity"
+    icon: "mdi:water-percent-auto"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+fan:
+  - platform: speed
+    id: orcon_fan_speed
+    name: "Orcon_Fan_Speed"
+    icon: "mdi:fan"
+    output: orcon_pwm_out
+    speed_count: 100
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      - switch.turn_on: orcon_speed_bypass
+    on_turn_off:
+      - switch.turn_off: orcon_speed_bypass
+
+sensor:
+  - platform: pulse_counter
+    pin: D5
+    id: orcon_tacho
+    name: "Orcon_Tacho"
+    icon: "mdi:speedometer"
+    force_update: true
+    update_interval: 10s
+    accuracy_decimals: 0
+    internal_filter: 5ms
+    count_mode:
+      falling_edge: INCREMENT
+      rising_edge: DISABLE
+
+  - platform: pulse_width
+    pin: D7
+    id: orcon_speed_requested
+    name: "Orcon_Speed_Requested"
+    icon: "mdi:remote"
+    update_interval: 10s
+    accuracy_decimals: 8
+
+  - platform: bme280_i2c
+    temperature:
+      name: "Orcon_Air_Temp"
+      icon: "mdi:thermometer"
+      oversampling: 16x
+    pressure:
+      name: "Orcon_Air_Pressure"
+      icon: "mdi:gauge"
+    humidity:
+      id: orcon_humidity
+      name: "Orcon_Air_Humidity"
+      icon: "mdi:water-percent"
+    address: 0x76
+    update_interval: 10s
+
+script:
+  - id: orcon_boost_15m
+    mode: restart
+    then:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 100
+      - delay: 15min
+      - fan.turn_off: orcon_fan_speed
+
+button:
+  - platform: template
+    name: "Orcon_Fan_Low"
+    icon: "mdi:fan-speed-1"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 30
+
+  - platform: template
+    name: "Orcon_Fan_Medium"
+    icon: "mdi:fan-speed-2"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 60
+
+  - platform: template
+    name: "Orcon_Fan_High"
+    icon: "mdi:fan-speed-3"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 100
+
+  - platform: template
+    name: "Orcon_Boost_15_Minutes"
+    icon: "mdi:fan-plus"
+    on_press:
+      - script.execute: orcon_boost_15m
+
+  - platform: template
+    name: "Orcon_Cancel_Boost"
+    icon: "mdi:fan-remove"
+    on_press:
+      - script.stop: orcon_boost_15m
+      - fan.turn_off: orcon_fan_speed
+
+number:
+  - platform: template
+    id: orcon_humidity_start
+    name: "Orcon_Humidity_Start"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    min_value: 40
+    max_value: 95
+    step: 1
+    initial_value: 70
+    restore_value: true
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_stop
+    name: "Orcon_Humidity_Stop"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    min_value: 35
+    max_value: 90
+    step: 1
+    initial_value: 65
+    restore_value: true
+    optimistic: true
+
+interval:
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state >= id(orcon_humidity_start).state;'
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: 60
+      - if:
+          condition:
+            lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state <= id(orcon_humidity_stop).state;'
+          then:
+            - fan.turn_off: orcon_fan_speed
+
+binary_sensor:
+  - platform: template
+    id: orcon_fan_failure
+    internal: true
+    lambda: |-
+      if (!id(orcon_fan_speed).state) {
+        return false;
+      }
+      return id(orcon_tacho).state < 50.0;
+    filters:
+      - delayed_on: 30s
+      - delayed_off: 10s
+
+text_sensor:
+  - platform: template
+    name: "Orcon_Fan"
+    icon: "mdi:fan-alert"
+    update_interval: 1s
+    lambda: |-
+      if (id(orcon_fan_failure).state) {
+        return {"Error"};
+      }
+      return {"OK"};
