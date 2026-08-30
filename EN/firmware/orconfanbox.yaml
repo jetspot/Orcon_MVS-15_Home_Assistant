@@ -15,15 +15,15 @@ api:
 
 ota:
   - platform: esphome
-    password: "Y27VqlakY27Vqlak"
+    password: "12345678"
 
 wifi:
-  ssid: "Iot_Smit_Schuur"
-  password: "49493757"
+  ssid: "wifi-point"
+  password: "12345678"
 
   ap:
     ssid: "OrconFanBox Setup"
-    password: "Y27VqlakY27Vqlak"
+    password: "12345678"
 
 captive_portal:
 
