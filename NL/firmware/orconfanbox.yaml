@@ -4,6 +4,10 @@ esphome:
 
 esp8266:
   board: d1_mini
+  restore_from_flash: true
+
+preferences:
+  flash_write_interval: 5s
 
 logger:
 
@@ -11,14 +15,22 @@ api:
 
 ota:
   - platform: esphome
+    password: "Y27VqlakY27Vqlak"
 
-# No personal network is compiled into distributable firmware.
-# On first boot, connect to "OrconFanBox Setup" and choose a Wi-Fi network.
 wifi:
+  ssid: "Iot_Smit_Schuur"
+  password: "49493757"
+
   ap:
     ssid: "OrconFanBox Setup"
+    password: "Y27VqlakY27Vqlak"
 
 captive_portal:
+
+
+# ============================================================
+# I2C
+# ============================================================
 
 i2c:
   sda: D2
@@ -26,22 +38,72 @@ i2c:
   scan: true
   frequency: 50kHz
 
+
+# ============================================================
+# TIJDELIJKE VARIABELEN
+# ============================================================
+
+globals:
+
+  - id: orcon_humidity_baseline
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  - id: orcon_humidity_boost_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: orcon_humidity_peak
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  - id: orcon_humidity_boost_seconds
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+  - id: orcon_humidity_stop_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+
+# ============================================================
+# PWM UITGANG
+# ============================================================
+
 output:
+
   - platform: esp8266_pwm
     id: orcon_pwm_out
     pin: D6
     frequency: 1000 Hz
     inverted: true
 
+
+# ============================================================
+# SWITCHES
+# ============================================================
+
 switch:
+
   - platform: gpio
     id: orcon_speed_bypass
     name: "Orcon_Fan_Bypass"
     icon: "mdi:swap-horizontal"
     pin: D8
     restore_mode: ALWAYS_OFF
+
     on_turn_off:
       - script.execute: orcon_restore_bypass
+
+
+  # ----------------------------------------------------------
+  # AUTOMATISCHE VOCHTREGELING
+  # ----------------------------------------------------------
 
   - platform: template
     id: orcon_humidity_auto
@@ -49,15 +111,53 @@ switch:
     icon: "mdi:water-percent"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
+
     turn_on_action:
+
+      - lambda: |-
+          if (!isnan(id(orcon_humidity).state)) {
+            id(orcon_humidity_baseline) =
+              id(orcon_humidity).state;
+          } else {
+            id(orcon_humidity_baseline) = -1.0;
+          }
+
+          id(orcon_humidity_boost_active) = false;
+          id(orcon_humidity_peak) = -1.0;
+          id(orcon_humidity_boost_seconds) = 0;
+          id(orcon_humidity_stop_counter) = 0;
+
       - fan.turn_on:
           id: orcon_fan_speed
-          speed: 11
+          speed: !lambda |-
+            return (int) id(orcon_normal_speed).state;
+
       - switch.turn_on: orcon_speed_bypass
+
+      - logger.log:
+          format: "Automatische vochtregeling AAN"
+
+
     turn_off_action:
+
+      - lambda: |-
+          id(orcon_humidity_boost_active) = false;
+          id(orcon_humidity_peak) = -1.0;
+          id(orcon_humidity_boost_seconds) = 0;
+          id(orcon_humidity_stop_counter) = 0;
+
       - fan.turn_off: orcon_fan_speed
 
+      - logger.log:
+          format: "Automatische vochtregeling UIT"
+
+
+# ============================================================
+# FAN
+# ============================================================
+
 fan:
+
   - platform: speed
     id: orcon_fan_speed
     name: "Orcon_Fan_Speed"
@@ -65,37 +165,68 @@ fan:
     output: orcon_pwm_out
     speed_count: 100
     restore_mode: ALWAYS_OFF
+
     on_turn_on:
+
       - if:
           condition:
-            lambda: 'return id(orcon_fan_speed).speed > 0;'
+            lambda: |-
+              return id(orcon_fan_speed).speed > 0;
+
           then:
             - switch.turn_on: orcon_speed_bypass
+
+
     on_speed_set:
+
       - if:
           condition:
-            lambda: 'return id(orcon_fan_speed).speed > 0;'
+            lambda: |-
+              return id(orcon_fan_speed).speed > 0;
+
           then:
             - switch.turn_on: orcon_speed_bypass
+
           else:
+
             - if:
                 condition:
                   switch.is_off: orcon_humidity_auto
+
                 then:
                   - switch.turn_off: orcon_speed_bypass
+
+
     on_turn_off:
+
       - if:
           condition:
             switch.is_on: orcon_humidity_auto
+
           then:
+
             - fan.turn_on:
                 id: orcon_fan_speed
-                speed: 11
+                speed: !lambda |-
+                  return (int) id(orcon_normal_speed).state;
+
             - switch.turn_on: orcon_speed_bypass
+
           else:
+
             - switch.turn_off: orcon_speed_bypass
 
+
+# ============================================================
+# SENSOREN
+# ============================================================
+
 sensor:
+
+  # ----------------------------------------------------------
+  # INGESTELDE VENTILATORSNELHEID
+  # ----------------------------------------------------------
+
   - platform: template
     id: orcon_fan_percentage
     name: "Orcon_Fan_Percentage"
@@ -103,11 +234,18 @@ sensor:
     unit_of_measurement: "%"
     accuracy_decimals: 0
     update_interval: 1s
+
     lambda: |-
       if (!id(orcon_fan_speed).state) {
         return 0.0;
       }
+
       return id(orcon_fan_speed).speed;
+
+
+  # ----------------------------------------------------------
+  # TACHO
+  # ----------------------------------------------------------
 
   - platform: pulse_counter
     pin: D5
@@ -115,181 +253,774 @@ sensor:
     name: "Orcon_Fan_Tacho"
     icon: "mdi:speedometer"
     force_update: true
-    update_interval: 10s
+    update_interval: 5s
     accuracy_decimals: 0
     internal_filter: 5ms
+
     count_mode:
       falling_edge: INCREMENT
       rising_edge: DISABLE
+
+
+  # ----------------------------------------------------------
+  # EXTERNE ORCON AANVRAAG
+  # ----------------------------------------------------------
 
   - platform: pulse_width
     pin: D7
     id: orcon_speed_requested
     name: "Orcon_Fan_Speed_Requested"
     icon: "mdi:remote"
-    update_interval: 10s
+    update_interval: 5s
     accuracy_decimals: 8
 
+
+  # ----------------------------------------------------------
+  # BME280
+  # ----------------------------------------------------------
+
   - platform: bme280_i2c
+
     temperature:
       name: "Orcon_Air_Temp"
       icon: "mdi:thermometer"
       oversampling: 16x
+
     pressure:
       name: "Orcon_Air_Pressure"
       icon: "mdi:gauge"
+
     humidity:
       id: orcon_humidity
       name: "Orcon_Air_Humidity"
       icon: "mdi:water-percent"
+
     address: 0x76
-    update_interval: 10s
+    update_interval: 5s
+
+
+  # ----------------------------------------------------------
+  # BASELINE
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_baseline_sensor
+    name: "Orcon_Humidity_Baseline"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+
+    lambda: |-
+      if (id(orcon_humidity_baseline) < 0.0) {
+        return NAN;
+      }
+
+      return id(orcon_humidity_baseline);
+
+
+  # ----------------------------------------------------------
+  # VOCHTSTIJGING T.O.V. BASELINE
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_delta
+    name: "Orcon_Humidity_Rise"
+    icon: "mdi:water-plus"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+
+    lambda: |-
+      if (
+        id(orcon_humidity_baseline) < 0.0 ||
+        isnan(id(orcon_humidity).state)
+      ) {
+        return NAN;
+      }
+
+      return
+        id(orcon_humidity).state -
+        id(orcon_humidity_baseline);
+
+
+  # ----------------------------------------------------------
+  # HOOGSTE VOCHTIGHEID TIJDENS BOOST
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_peak_sensor
+    name: "Orcon_Humidity_Peak"
+    icon: "mdi:water-alert"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+
+    lambda: |-
+      if (id(orcon_humidity_peak) < 0.0) {
+        return NAN;
+      }
+
+      return id(orcon_humidity_peak);
+
+
+# ============================================================
+# SCRIPTS
+# ============================================================
 
 script:
+
   - id: orcon_restore_bypass
     mode: restart
+
     then:
+
       - delay: 100ms
+
       - if:
           condition:
-            lambda: 'return id(orcon_humidity_auto).state || (id(orcon_fan_speed).state && id(orcon_fan_speed).speed > 0);'
+            lambda: |-
+              return
+                id(orcon_humidity_auto).state ||
+                (
+                  id(orcon_fan_speed).state &&
+                  id(orcon_fan_speed).speed > 0
+                );
+
           then:
             - switch.turn_on: orcon_speed_bypass
 
+
+  # ----------------------------------------------------------
+  # HANDMATIGE BOOST
+  # ----------------------------------------------------------
+
   - id: orcon_boost_15m
     mode: restart
+
     then:
+
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 100
-      - delay: !lambda 'return (uint32_t) (id(orcon_boost_minutes).state * 60000);'
+
+      - delay: !lambda |-
+          return
+            (uint32_t)
+            (id(orcon_boost_minutes).state * 60000);
+
       - fan.turn_off: orcon_fan_speed
 
+
+# ============================================================
+# KNOPPEN
+# ============================================================
+
 button:
+
   - platform: template
     name: "Orcon_Fan_Low"
     icon: "mdi:fan-speed-1"
+
     on_press:
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 30
 
+
   - platform: template
     name: "Orcon_Fan_Medium"
     icon: "mdi:fan-speed-2"
+
     on_press:
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 60
 
+
   - platform: template
     name: "Orcon_Fan_High"
     icon: "mdi:fan-speed-3"
+
     on_press:
       - fan.turn_on:
           id: orcon_fan_speed
           speed: 100
 
+
   - platform: template
     name: "Orcon_Fan_Boost_15_Minutes"
     icon: "mdi:fan-plus"
+
     on_press:
       - script.execute: orcon_boost_15m
+
 
   - platform: template
     name: "Orcon_Fan_Boost_Cancel"
     icon: "mdi:fan-remove"
+
     on_press:
+
       - script.stop: orcon_boost_15m
       - fan.turn_off: orcon_fan_speed
 
+
+# ============================================================
+# INSTELBARE WAARDEN
+#
+# ALLE WAARDEN WORDEN IN FLASH OPGESLAGEN
+# ============================================================
+
 number:
+
+  # ----------------------------------------------------------
+  # NORMALE VENTILATORSNELHEID
+  #
+  # Dit was voorheen vast 11%.
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_normal_speed
+    name: "Orcon_Normal_Fan_Speed"
+    icon: "mdi:fan-speed-1"
+    unit_of_measurement: "%"
+
+    min_value: 5
+    max_value: 50
+    step: 1
+
+    initial_value: 11
+
+    restore_value: true
+    optimistic: true
+
+    on_value:
+
+      - if:
+          condition:
+            lambda: |-
+              return
+                id(orcon_humidity_auto).state &&
+                !id(orcon_humidity_boost_active);
+
+          then:
+
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  return (int) id(orcon_normal_speed).state;
+
+
+  # ----------------------------------------------------------
+  # HANDMATIGE BOOSTTIJD
+  # ----------------------------------------------------------
+
   - platform: template
     id: orcon_boost_minutes
     name: "Orcon_Fan_Boost_Minutes"
     icon: "mdi:timer-cog-outline"
     unit_of_measurement: "min"
+
     min_value: 1
     max_value: 60
     step: 1
+
     initial_value: 15
+
     restore_value: true
     optimistic: true
+
+
+  # ----------------------------------------------------------
+  # AUTOMATISCHE VOCHTBOOST SNELHEID
+  # ----------------------------------------------------------
 
   - platform: template
     id: orcon_humidity_speed
     name: "Orcon_Humidity_Fan_Speed"
     icon: "mdi:fan-chevron-up"
     unit_of_measurement: "%"
+
     min_value: 20
     max_value: 100
     step: 1
-    initial_value: 80
+
+    initial_value: 85
+
     restore_value: true
     optimistic: true
 
+    on_value:
+
+      - if:
+          condition:
+            lambda: |-
+              return id(orcon_humidity_boost_active);
+
+          then:
+
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  return
+                    (int)
+                    id(orcon_humidity_speed).state;
+
+
+  # ----------------------------------------------------------
+  # BOOST START BIJ +8 PROCENTPUNT
+  # ----------------------------------------------------------
+
   - platform: template
-    id: orcon_humidity_start
-    name: "Orcon_Humidity_Start"
-    icon: "mdi:water-percent"
+    id: orcon_humidity_rise_start
+    name: "Orcon_Humidity_Rise_Start"
+    icon: "mdi:water-plus"
     unit_of_measurement: "%"
-    min_value: 40
-    max_value: 95
+
+    min_value: 3
+    max_value: 25
     step: 1
-    initial_value: 70
+
+    initial_value: 8
+
     restore_value: true
     optimistic: true
 
+
+  # ----------------------------------------------------------
+  # STOP BIJ BASELINE +3 PROCENTPUNT
+  # ----------------------------------------------------------
+
   - platform: template
-    id: orcon_humidity_stop
-    name: "Orcon_Humidity_Stop"
-    icon: "mdi:water-percent"
+    id: orcon_humidity_rise_stop
+    name: "Orcon_Humidity_Rise_Stop"
+    icon: "mdi:water-minus"
     unit_of_measurement: "%"
-    min_value: 35
-    max_value: 90
+
+    min_value: 1
+    max_value: 15
     step: 1
-    initial_value: 65
+
+    initial_value: 3
+
     restore_value: true
     optimistic: true
+
+
+  # ----------------------------------------------------------
+  # STOP ALS VOCHT VANAF PIEK IS GEDAALD
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_peak_drop
+    name: "Orcon_Humidity_Peak_Drop"
+    icon: "mdi:water-minus-outline"
+    unit_of_measurement: "%"
+
+    min_value: 3
+    max_value: 20
+    step: 1
+
+    initial_value: 8
+
+    restore_value: true
+    optimistic: true
+
+
+  # ----------------------------------------------------------
+  # MAXIMALE AUTOMATISCHE BOOSTTIJD
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_max_boost_minutes
+    name: "Orcon_Humidity_Max_Boost_Minutes"
+    icon: "mdi:timer-alert-outline"
+    unit_of_measurement: "min"
+
+    min_value: 5
+    max_value: 120
+    step: 5
+
+    initial_value: 45
+
+    restore_value: true
+    optimistic: true
+
+
+# ============================================================
+# AUTOMATISCHE VOCHTREGELING
+# ============================================================
 
 interval:
-  - interval: 10s
+
+  # ----------------------------------------------------------
+  # ELKE 5 SECONDEN CONTROLEREN
+  # ----------------------------------------------------------
+
+  - interval: 5s
+    startup_delay: 20s
+
     then:
+
+      # ------------------------------------------------------
+      # EERSTE GELDIGE METING WORDT BASELINE
+      # ------------------------------------------------------
+
       - if:
+
           condition:
-            lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state >= id(orcon_humidity_start).state;'
+
+            lambda: |-
+              return
+                !isnan(id(orcon_humidity).state) &&
+                id(orcon_humidity_baseline) < 0.0;
+
           then:
+
+            - lambda: |-
+                id(orcon_humidity_baseline) =
+                  id(orcon_humidity).state;
+
+                ESP_LOGI(
+                  "orcon",
+                  "Baseline ingesteld: %.1f%%",
+                  id(orcon_humidity_baseline)
+                );
+
+
+      # ------------------------------------------------------
+      # BOOST ACTIEF:
+      # TIJD EN HOOGSTE VOCHTIGHEID BIJHOUDEN
+      # ------------------------------------------------------
+
+      - if:
+
+          condition:
+
+            lambda: |-
+              return id(orcon_humidity_boost_active);
+
+          then:
+
+            - lambda: |-
+                id(orcon_humidity_boost_seconds) += 5;
+
+                if (!isnan(id(orcon_humidity).state)) {
+
+                  if (
+                    id(orcon_humidity_peak) < 0.0 ||
+                    id(orcon_humidity).state >
+                    id(orcon_humidity_peak)
+                  ) {
+
+                    id(orcon_humidity_peak) =
+                      id(orcon_humidity).state;
+                  }
+                }
+
+
+      # ------------------------------------------------------
+      # BOOST DIRECT STARTEN
+      #
+      # GEEN 30 SECONDEN WACHTTIJD MEER.
+      #
+      # Zodra:
+      #
+      # actuele vochtigheid - baseline >= startgrens
+      #
+      # gaat de ventilator meteen naar de boostsnelheid.
+      # ------------------------------------------------------
+
+      - if:
+
+          condition:
+
+            lambda: |-
+              if (!id(orcon_humidity_auto).state) {
+                return false;
+              }
+
+              if (id(orcon_humidity_boost_active)) {
+                return false;
+              }
+
+              if (isnan(id(orcon_humidity).state)) {
+                return false;
+              }
+
+              if (id(orcon_humidity_baseline) < 0.0) {
+                return false;
+              }
+
+              float verschil =
+                id(orcon_humidity).state -
+                id(orcon_humidity_baseline);
+
+              return
+                verschil >=
+                id(orcon_humidity_rise_start).state;
+
+          then:
+
+            - lambda: |-
+                id(orcon_humidity_boost_active) = true;
+
+                id(orcon_humidity_peak) =
+                  id(orcon_humidity).state;
+
+                id(orcon_humidity_boost_seconds) = 0;
+                id(orcon_humidity_stop_counter) = 0;
+
+                ESP_LOGI(
+                  "orcon",
+                  "VOCHT BOOST AAN - RH %.1f%% / baseline %.1f%% / rise %.1f%% / snelheid %.0f%%",
+                  id(orcon_humidity).state,
+                  id(orcon_humidity_baseline),
+                  id(orcon_humidity).state -
+                    id(orcon_humidity_baseline),
+                  id(orcon_humidity_speed).state
+                );
+
             - fan.turn_on:
                 id: orcon_fan_speed
-                speed: !lambda 'return (int) id(orcon_humidity_speed).state;'
+                speed: !lambda |-
+                  return
+                    (int)
+                    id(orcon_humidity_speed).state;
+
+
+      # ------------------------------------------------------
+      # CONTROLEREN OF BOOST MAG STOPPEN
+      # ------------------------------------------------------
+
       - if:
+
           condition:
-            lambda: 'return id(orcon_humidity_auto).state && id(orcon_humidity).state <= id(orcon_humidity_stop).state;'
+
+            lambda: |-
+              if (!id(orcon_humidity_auto).state) {
+                return false;
+              }
+
+              if (!id(orcon_humidity_boost_active)) {
+                return false;
+              }
+
+
+              // ==============================================
+              // MAXIMALE BOOSTTIJD
+              // ==============================================
+
+              float max_seconds =
+                id(orcon_humidity_max_boost_minutes).state *
+                60.0;
+
+              if (
+                id(orcon_humidity_boost_seconds) >=
+                max_seconds
+              ) {
+                return true;
+              }
+
+
+              if (isnan(id(orcon_humidity).state)) {
+                return false;
+              }
+
+
+              float rh =
+                id(orcon_humidity).state;
+
+
+              // ==============================================
+              // STOP 1:
+              // BASELINE + STOPMARGE
+              // ==============================================
+
+              bool baseline_reached =
+                rh <=
+                (
+                  id(orcon_humidity_baseline) +
+                  id(orcon_humidity_rise_stop).state
+                );
+
+
+              // ==============================================
+              // STOP 2:
+              // DALING VANAF HOOGSTE PIEK
+              // ==============================================
+
+              bool dropped_from_peak = false;
+
+              if (id(orcon_humidity_peak) > 0.0) {
+
+                dropped_from_peak =
+                  rh <=
+                  (
+                    id(orcon_humidity_peak) -
+                    id(orcon_humidity_peak_drop).state
+                  );
+              }
+
+
+              return
+                baseline_reached ||
+                dropped_from_peak;
+
           then:
+
+            - lambda: |-
+                id(orcon_humidity_stop_counter)++;
+
+          else:
+
+            - lambda: |-
+                id(orcon_humidity_stop_counter) = 0;
+
+
+      # ------------------------------------------------------
+      # STOP MOET 30 SECONDEN STABIEL ZIJN
+      #
+      # 6 metingen x 5 seconden = 30 seconden
+      # ------------------------------------------------------
+
+      - if:
+
+          condition:
+
+            lambda: |-
+              return
+                id(orcon_humidity_boost_active) &&
+                id(orcon_humidity_stop_counter) >= 6;
+
+          then:
+
+            - lambda: |-
+                ESP_LOGI(
+                  "orcon",
+                  "VOCHT BOOST UIT - RH %.1f%% / piek %.1f%%",
+                  id(orcon_humidity).state,
+                  id(orcon_humidity_peak)
+                );
+
+                id(orcon_humidity_boost_active) = false;
+                id(orcon_humidity_stop_counter) = 0;
+                id(orcon_humidity_boost_seconds) = 0;
+                id(orcon_humidity_peak) = -1.0;
+
+
+                // Huidige vochtigheid wordt nieuwe baseline.
+
+                if (!isnan(id(orcon_humidity).state)) {
+
+                  id(orcon_humidity_baseline) =
+                    id(orcon_humidity).state;
+                }
+
+
             - fan.turn_on:
                 id: orcon_fan_speed
-                speed: 11
+                speed: !lambda |-
+                  return
+                    (int)
+                    id(orcon_normal_speed).state;
+
+
+  # ----------------------------------------------------------
+  # BASELINE LANGZAAM LATEN MEELOPEN
+  #
+  # Regen/langzame weersverandering wordt gevolgd.
+  # Tijdens vochtboost blijft baseline staan.
+  # ----------------------------------------------------------
+
+  - interval: 60s
+    startup_delay: 60s
+
+    then:
+
+      - if:
+
+          condition:
+
+            lambda: |-
+              return
+                !isnan(id(orcon_humidity).state) &&
+                !id(orcon_humidity_boost_active);
+
+          then:
+
+            - lambda: |-
+                if (id(orcon_humidity_baseline) < 0.0) {
+
+                  id(orcon_humidity_baseline) =
+                    id(orcon_humidity).state;
+
+                } else {
+
+                  id(orcon_humidity_baseline) =
+                    (
+                      id(orcon_humidity_baseline) * 0.95
+                    ) +
+                    (
+                      id(orcon_humidity).state * 0.05
+                    );
+                }
+
+
+# ============================================================
+# FAN STORING
+# ============================================================
 
 binary_sensor:
+
   - platform: template
     id: orcon_fan_failure
     internal: true
+
     lambda: |-
       if (!id(orcon_fan_speed).state) {
         return false;
       }
+
       return id(orcon_tacho).state < 50.0;
+
     filters:
       - delayed_on: 30s
       - delayed_off: 10s
 
+
+  # ----------------------------------------------------------
+  # VOCHTBOOST STATUS
+  # ----------------------------------------------------------
+
+  - platform: template
+    id: orcon_humidity_boost_status
+    name: "Orcon_Humidity_Boost"
+    icon: "mdi:shower"
+
+    lambda: |-
+      return id(orcon_humidity_boost_active);
+
+
+# ============================================================
+# STATUS
+# ============================================================
+
 text_sensor:
+
   - platform: template
     name: "Orcon_Fan_Status"
     icon: "mdi:fan-alert"
     update_interval: 1s
+
     lambda: |-
       if (id(orcon_fan_failure).state) {
         return {"Error"};
       }
+
+      if (id(orcon_humidity_boost_active)) {
+        return {"Humidity Boost"};
+      }
+
       return {"OK"};
