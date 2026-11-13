@@ -218,7 +218,7 @@ var e=globalThis,t=e.ShadowRoot&&(e.ShadyCSS===void 0||e.ShadyCSS.nativeShadow)&
 ;(function () {
   // v11.13: eigen overzichtelijke weergave (Nederlandse namen, groepen, twee kolommen).
   // Namen in Home Assistant blijven ongewijzigd; dit is alleen de webpagina.
-  var S = {}, BIND = {}, VERSIE = '11.17';
+  var S = {}, BIND = {}, VERSIE = '11.18';
   var css = ''
     + ':root{--bg:#0f1012;--kaart:#1b1c1f;--kop:#24262a;--rand:#34363b;--tekst:#e6e6e6;--zacht:#9aa0a6;--accent:#03a9f4;--groen:#2e9e4f;--rood:#d9534f}'
     + '@media (prefers-color-scheme:light){:root{--bg:#f3f4f6;--kaart:#fff;--kop:#eef0f3;--rand:#d9dce1;--tekst:#1d1f22;--zacht:#5f6368}}'
@@ -333,7 +333,8 @@ var e=globalThis,t=e.ShadowRoot&&(e.ShadyCSS===void 0||e.ShadyCSS.nativeShadow)&
     r.appendChild(knop('Midden', '', function () { post('/button/Orcon_Fan_Medium/press'); }));
     r.appendChild(knop('Hoog', '', function () { post('/button/Orcon_Fan_High/press'); })); g.body.appendChild(r);
     r = e('div', 'o-r'); r.appendChild(e('span', 'l', 'Boost'));
-    r.appendChild(knop('Start 15 min', 'start', function () { post('/button/Orcon_Fan_Boost_15_Minutes/press'); }));
+    var bk = knop('Start', 'start', function () { post('/button/Orcon_Fan_Boost_15_Minutes/press'); }); r.appendChild(bk);
+    bind('number/Orcon_Fan_Boost_Minutes', function () { var v = waarde('number/Orcon_Fan_Boost_Minutes'); bk.textContent = (v !== undefined && v !== null && v !== '') ? 'Start ' + Math.round(+v) + ' min' : 'Start'; });
     r.appendChild(knop('Stop', 'stop', function () { post('/button/Orcon_Fan_Boost_Cancel/press'); })); g.body.appendChild(r);
     L.appendChild(g);
 

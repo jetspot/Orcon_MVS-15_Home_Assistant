@@ -1,6 +1,6 @@
 # Orcon MVS-15 Home Assistant – OrconFanBox
 
-ESPHome firmware **v11.17** for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with a humidity-driven variable boost, its own web page, a 7-day chart and full Home Assistant integration.
+ESPHome firmware **v11.18** for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with a humidity-driven variable boost, its own web page, a 7-day chart and full Home Assistant integration.
 
 ![OrconFanBox web page](screenshots/webpagina-pc.png)
 

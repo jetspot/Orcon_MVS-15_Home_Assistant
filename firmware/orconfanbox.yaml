@@ -1,5 +1,5 @@
 substitutions:
-  versie: "11.17"
+  versie: "11.18"
   # Inlog van de webpagina (gebruikersnaam en wachtwoord)
   web_gebruiker: "admin"
   web_wachtwoord: "admin"
