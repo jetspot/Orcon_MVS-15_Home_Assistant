@@ -1,11 +1,13 @@
 # OrconFanBox voor Home Assistant
 
-ESPHome-firmware (v11.19) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
+ESPHome-firmware (v11.20) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
 
 > [!IMPORTANT]
 > Alle firmwarebestanden staan in de map [`../firmware`](../firmware). Zet ze **allemaal** in dezelfde map in ESPHome; de YAML gebruikt de `.h`- en `.js`-bestanden.
 
-![Webpagina op de pc](../screenshots/webpagina-pc.png)
+| Donker | Licht |
+|---|---|
+| ![Webpagina Donker](../screenshots/webpagina-pc-donker.png) | ![Webpagina Licht](../screenshots/webpagina-pc-licht.png) |
 
 ## Functies
 
@@ -39,10 +41,17 @@ Open `http://orconfanbox.local` of het IP-adres van de box (inlog standaard **ad
 - Nederlandse namen op de pagina; de namen in Home Assistant blijven ongewijzigd;
 - invulvakken tonen alleen waarde en eenheid; de toegestane grens verschijnt links naast het vak zodra u erin tikt;
 - geschikt voor pc (twee kolommen) en telefoon (één kolom).
+- knop rechtsboven voor ◐ Auto / ☀ Licht / ☾ Donker;
+- inzoomen in de grafiek: met de muis een stuk selecteren of op de telefoon horizontaal vegen; dubbelklikken of **Alles tonen** gaat terug.
 
-| Telefoon | Grafiek |
+| Telefoon Donker | Telefoon Licht |
 |---|---|
-| ![Telefoon](../screenshots/webpagina-telefoon.png) | ![Grafiek](../screenshots/grafiek.png) |
+| <img src="../screenshots/webpagina-telefoon-donker.png" width="260"> | <img src="../screenshots/webpagina-telefoon-licht.png" width="260"> |
+| ![Grafiek Donker](../screenshots/grafiek-donker.png) | ![Grafiek Licht](../screenshots/grafiek-licht.png) |
+
+Ingezoomd op één douchebeurt (met de muis slepen, of op de telefoon horizontaal vegen; dubbelklik of **Alles tonen** gaat terug):
+
+![Grafiek](../screenshots/grafiek-ingezoomd.png)
 
 **Diagnose:** `http://<ip>/diag` toont herstartreden, vrij geheugen, uptime, het aantal grafiekpunten en de laagste geheugenwaarden van deze en de vorige sessie.
 

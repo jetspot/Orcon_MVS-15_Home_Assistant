@@ -1,11 +1,13 @@
 # OrconFanBox for Home Assistant
 
-ESPHome firmware (v11.19) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
+ESPHome firmware (v11.20) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
 
 > [!IMPORTANT]
 > All firmware files are in [`../firmware`](../firmware). Put **all** of them in the same ESPHome folder; the YAML uses the `.h` and `.js` files.
 
-![Web page on a PC](../screenshots/webpagina-pc.png)
+| Dark | Light |
+|---|---|
+| ![Web page Dark](../screenshots/webpagina-pc-donker.png) | ![Web page Light](../screenshots/webpagina-pc-licht.png) |
 
 ## Features
 
@@ -38,10 +40,17 @@ Open `http://orconfanbox.local` or the box's IP address (default login **admin /
 - every group can be collapsed; the page remembers your choice;
 - input fields show value and unit only; the allowed range appears next to the field when you tap it;
 - works on PC (two columns) and phone (one column).
+- button at the top right for ◐ Auto / ☀ Light / ☾ Dark;
+- zoom into the chart: select a range with the mouse or swipe horizontally on a phone; double-click or **Alles tonen** to go back.
 
-| Phone | Chart |
+| Phone Dark | Phone Light |
 |---|---|
-| ![Phone](../screenshots/webpagina-telefoon.png) | ![Chart](../screenshots/grafiek.png) |
+| <img src="../screenshots/webpagina-telefoon-donker.png" width="260"> | <img src="../screenshots/webpagina-telefoon-licht.png" width="260"> |
+| ![Chart Dark](../screenshots/grafiek-donker.png) | ![Chart Light](../screenshots/grafiek-licht.png) |
+
+Zoomed in on one shower (drag with the mouse or swipe horizontally on a phone; double-click or **Alles tonen** to go back):
+
+![Chart](../screenshots/grafiek-ingezoomd.png)
 
 **Diagnostics:** `http://<ip>/diag` shows reset reason, free memory, uptime, chart points and the lowest memory values of this and the previous session.
 

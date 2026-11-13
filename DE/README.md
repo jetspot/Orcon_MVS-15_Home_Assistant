@@ -1,11 +1,13 @@
 # OrconFanBox für Home Assistant
 
-ESPHome-Firmware (v11.19) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
+ESPHome-Firmware (v11.20) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
 
 > [!IMPORTANT]
 > Alle Firmware-Dateien liegen im Ordner [`../firmware`](../firmware). Legen Sie **alle** Dateien in denselben ESPHome-Ordner; die YAML verwendet die `.h`- und `.js`-Dateien.
 
-![Webseite am PC](../screenshots/webpagina-pc.png)
+| Dunkel | Hell |
+|---|---|
+| ![Webseite Dunkel](../screenshots/webpagina-pc-donker.png) | ![Webseite Hell](../screenshots/webpagina-pc-licht.png) |
 
 ## Funktionen
 
@@ -38,10 +40,17 @@ ESPHome-Firmware (v11.19) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**
 - jede Gruppe ist ein- und ausklappbar; die Seite merkt sich Ihre Wahl;
 - Eingabefelder zeigen nur Wert und Einheit; der erlaubte Bereich erscheint neben dem Feld, sobald Sie hineintippen;
 - geeignet für PC (zwei Spalten) und Smartphone (eine Spalte).
+- Taste oben rechts für ◐ Auto / ☀ Hell / ☾ Dunkel;
+- Zoomen im Diagramm: mit der Maus einen Bereich wählen oder am Smartphone waagerecht wischen; Doppelklick oder **Alles tonen** führt zurück.
 
-| Smartphone | Diagramm |
+| Smartphone Dunkel | Smartphone Hell |
 |---|---|
-| ![Smartphone](../screenshots/webpagina-telefoon.png) | ![Diagramm](../screenshots/grafiek.png) |
+| <img src="../screenshots/webpagina-telefoon-donker.png" width="260"> | <img src="../screenshots/webpagina-telefoon-licht.png" width="260"> |
+| ![Diagramm Dunkel](../screenshots/grafiek-donker.png) | ![Diagramm Hell](../screenshots/grafiek-licht.png) |
+
+Auf eine Dusche gezoomt (mit der Maus ziehen oder am Smartphone waagerecht wischen; Doppelklick oder **Alles tonen** zurück):
+
+![Diagramm](../screenshots/grafiek-ingezoomd.png)
 
 **Diagnose:** `http://<ip>/diag` zeigt Neustartgrund, freien Speicher, Laufzeit, Diagrammpunkte und die niedrigsten Speicherwerte dieser und der vorherigen Sitzung.
 
