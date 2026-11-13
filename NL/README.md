@@ -1,6 +1,6 @@
 # OrconFanBox voor Home Assistant
 
-ESPHome-firmware (v11.18) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
+ESPHome-firmware (v11.19) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
 
 > [!IMPORTANT]
 > Alle firmwarebestanden staan in de map [`../firmware`](../firmware). Zet ze **allemaal** in dezelfde map in ESPHome; de YAML gebruikt de `.h`- en `.js`-bestanden.

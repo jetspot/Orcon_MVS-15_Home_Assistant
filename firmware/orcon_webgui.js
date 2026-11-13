@@ -39,7 +39,7 @@ var e=globalThis,t=e.ShadowRoot&&(e.ShadyCSS===void 0||e.ShadyCSS.nativeShadow)&
   if (document.body) document.body.style.margin = '2px'; else document.addEventListener('DOMContentLoaded', function () { document.body.style.margin = '2px'; });
   var DAG = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
   // v11.11: zelf te kiezen aantal dagen (1-7), onthouden in de browser
-  var DAGEN = 7; try { var sv = parseInt(localStorage.getItem('orcDagen'), 10); if (sv >= 1 && sv <= 7) DAGEN = sv; } catch (e) {}
+  var DAGEN = 2; try { var sv = parseInt(localStorage.getItem('orcDagen'), 10); if (sv >= 1 && sv <= 7) DAGEN = sv; } catch (e) {}
   function zetDagen(n) {
     n = parseInt(n, 10); if (isNaN(n)) return; if (n < 1) n = 1; if (n > 7) n = 7; DAGEN = n;
     try { localStorage.setItem('orcDagen', String(n)); } catch (e) {}
@@ -218,10 +218,12 @@ var e=globalThis,t=e.ShadowRoot&&(e.ShadyCSS===void 0||e.ShadyCSS.nativeShadow)&
 ;(function () {
   // v11.13: eigen overzichtelijke weergave (Nederlandse namen, groepen, twee kolommen).
   // Namen in Home Assistant blijven ongewijzigd; dit is alleen de webpagina.
-  var S = {}, BIND = {}, VERSIE = '11.18';
+  var S = {}, BIND = {}, VERSIE = '11.19';
   var css = ''
     + ':root{--bg:#0f1012;--kaart:#1b1c1f;--kop:#24262a;--rand:#34363b;--tekst:#e6e6e6;--zacht:#9aa0a6;--accent:#03a9f4;--groen:#2e9e4f;--rood:#d9534f}'
-    + '@media (prefers-color-scheme:light){:root{--bg:#f3f4f6;--kaart:#fff;--kop:#eef0f3;--rand:#d9dce1;--tekst:#1d1f22;--zacht:#5f6368}}'
+    + '@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f3f4f6;--kaart:#fff;--kop:#eef0f3;--rand:#d9dce1;--tekst:#1d1f22;--zacht:#5f6368}}:root[data-theme=light]{--bg:#f3f4f6;--kaart:#fff;--kop:#eef0f3;--rand:#d9dce1;--tekst:#1d1f22;--zacht:#5f6368}'
+    + ':root{color-scheme:dark}:root[data-theme=light]{color-scheme:light}@media (prefers-color-scheme:light){:root:not([data-theme=dark]){color-scheme:light}}'
+    + '.o-thema{margin-left:8px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--rand);background:transparent;color:var(--tekst);font-size:13px;cursor:pointer;white-space:nowrap}'
     + 'html,body{background:var(--bg);color:var(--tekst);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}'
     + '#orc-app{max-width:1200px;margin:0 auto;padding:6px 2px 24px}'
     + '.o-top{display:flex;align-items:center;gap:10px;padding:6px 8px 10px}.o-top h1{font-size:20px;font-weight:600;margin:0}.o-top .s{color:var(--zacht);font-size:12px;margin-left:auto;text-align:right}'
@@ -306,7 +308,18 @@ var e=globalThis,t=e.ShadowRoot&&(e.ShadyCSS===void 0||e.ShadyCSS.nativeShadow)&
     var oud = document.querySelector('esp-app'); if (oud) oud.remove();
     if (!app || app.dataset.klaar) return; app.dataset.klaar = '1';
     var top = e('div', 'o-top'), dot = e('span', 'o-dot'), s = e('span', 's', '');
-    top.appendChild(dot); top.appendChild(e('h1', null, 'OrconFanBox')); top.appendChild(s); app.appendChild(top);
+    top.appendChild(dot); top.appendChild(e('h1', null, 'OrconFanBox')); top.appendChild(s);
+    // v11.19: licht/donker-knop (Auto volgt het apparaat)
+    var THEMA = ['auto', 'licht', 'donker'], TT = { auto: '◐ Auto', licht: '☀ Licht', donker: '☾ Donker' }, thema = 'auto';
+    try { var tv = localStorage.getItem('orcThema'); if (THEMA.indexOf(tv) >= 0) thema = tv; } catch (x) {}
+    var tk = e('button', 'o-thema'); tk.type = 'button'; tk.title = 'Licht / donker';
+    var zetThema = function () {
+      var r = document.documentElement;
+      if (thema == 'licht') r.setAttribute('data-theme', 'light'); else if (thema == 'donker') r.setAttribute('data-theme', 'dark'); else r.removeAttribute('data-theme');
+      tk.textContent = TT[thema]; window.dispatchEvent(new Event('resize'));
+    };
+    tk.addEventListener('click', function () { thema = THEMA[(THEMA.indexOf(thema) + 1) % 3]; try { localStorage.setItem('orcThema', thema); } catch (x) {} zetThema(); });
+    top.appendChild(tk); zetThema(); app.appendChild(top);
     var kol = e('div', 'o-kol'), L = e('div'), R = e('div'); kol.appendChild(L); kol.appendChild(R); app.appendChild(kol);
 
     var g = groep('Overzicht', '◉', 'overzicht');

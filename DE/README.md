@@ -1,6 +1,6 @@
 # OrconFanBox für Home Assistant
 
-ESPHome-Firmware (v11.18) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
+ESPHome-Firmware (v11.19) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
 
 > [!IMPORTANT]
 > Alle Firmware-Dateien liegen im Ordner [`../firmware`](../firmware). Legen Sie **alle** Dateien in denselben ESPHome-Ordner; die YAML verwendet die `.h`- und `.js`-Dateien.
