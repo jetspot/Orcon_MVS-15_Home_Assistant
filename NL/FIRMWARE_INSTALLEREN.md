@@ -2,43 +2,36 @@
 
 ## Benodigdheden
 
-- Home Assistant met de ESPHome Device Builder-app;
-- een D1 mini die via USB of het netwerk bereikbaar is;
-- `firmware/orconfanbox.yaml` uit deze map;
-- bij een eerste USB-installatie: een USB-datakabel.
+- Home Assistant met de **ESPHome Device Builder**, of ESPHome op de pc;
+- alle bestanden uit de map [`../firmware`](../firmware);
+- bij de eerste installatie: een USB-datakabel.
 
-## Eerst een back-up maken
+## Voorbereiden
 
-Open in ESPHome de bestaande OrconFanBox-configuratie en bewaar een kopie van de huidige YAML. Noteer zo nodig de gebruikte Wi-Fi- en OTA-instellingen.
+1. Kopieer **alle** bestanden uit `firmware/` naar uw ESPHome-map (bij Home Assistant: `/config/esphome/`).
+2. Kopieer `secrets.example.yaml` naar `secrets.yaml` (of vul uw bestaande `secrets.yaml` aan) met `wifi_ssid`, `wifi_password`, `ota_password` en `ap_password`.
+3. Pas zo nodig bovenin `orconfanbox.yaml` het inlog van de webpagina aan: `web_gebruiker` en `web_wachtwoord` (standaard admin / admin).
 
-## Bestaand apparaat via het netwerk bijwerken
-
-1. Open **Home Assistant → ESPHome Device Builder**.
-2. Open **OrconFanBox** en kies **Bewerken**.
-3. Vervang de YAML door de inhoud van `firmware/orconfanbox.yaml`.
-4. Bewaar eigen Wi-Fi-, API- en OTA-wachtwoorden wanneer die al in de bestaande configuratie staan. Publiceer deze wachtwoorden nooit op GitHub.
-5. Klik op **Opslaan**.
-6. Klik op **Installeren** en kies **Via het netwerk**.
-7. Wacht totdat compilatie, upload en herstart volledig zijn voltooid.
-8. Controleer dat OrconFanBox weer **Online** wordt weergegeven.
+> [!WARNING]
+> Zet `secrets.yaml` nooit op GitHub.
 
 ## Eerste installatie via USB
 
-1. Verbind de D1 mini met een USB-datakabel.
-2. Open **ESPHome Device Builder** en maak zo nodig een nieuw apparaat met de naam `orconfanbox`.
-3. Open **Bewerken** en plaats de inhoud van `firmware/orconfanbox.yaml` in de editor.
-4. Klik op **Opslaan** en daarna op **Installeren**.
-5. Kies de USB-installatiemethode die past bij de aansluiting: deze computer of de Home Assistant-server.
-6. Selecteer de juiste seriële poort en start de installatie.
-7. Verwijder de USB-kabel pas nadat ESPHome meldt dat de installatie is geslaagd.
-8. Verbind daarna met **OrconFanBox Setup** en stel het Wi-Fi-netwerk in. Open zo nodig `http://192.168.4.1`.
+1. Sluit de D1 mini met een USB-datakabel aan.
+2. Open `orconfanbox.yaml` in ESPHome en kies **Installeren** → via USB.
+3. Wacht tot ESPHome meldt dat de installatie is geslaagd.
+4. Kan de box uw wifi niet vinden, dan start hij het accesspoint **OrconFanBox Setup**. Verbind daarmee en open `http://192.168.4.1` om het netwerk te kiezen.
+
+## Bijwerken via het netwerk (OTA)
+
+1. Vervang de bestanden in uw ESPHome-map door de nieuwe versie.
+2. Kies **Installeren** → **Via het netwerk**.
+3. Uw instellingen en de grafiek blijven bewaard.
+
+Alternatief: op de webpagina onder **Systeem** een gecompileerd `.bin`-bestand kiezen en op **Update** klikken.
 
 ## Controleren
 
-1. Wacht totdat het apparaat in ESPHome als **Online** verschijnt.
-2. Open in Home Assistant het ESPHome-apparaat.
-3. Controleer minimaal `Orcon_Fan_Speed`, `Orcon_Unit_Bypass` en `Orcon_Tacho`.
-4. Test eerst met een lage ventilatorsnelheid en controleer de tachometerwaarde.
-
-> [!WARNING]
-> Onderbreek de voeding niet tijdens het flashen. Werkzaamheden aan 230 V moeten spanningsloos en door een deskundige worden uitgevoerd.
+- de webpagina opent en toont de waarden;
+- `http://<ip>/diag` toont `grafiek flash: ok`;
+- in Home Assistant verschijnt het apparaat **OrconFanBox** met alle entiteiten.

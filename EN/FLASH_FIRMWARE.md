@@ -1,44 +1,37 @@
-# Installing the firmware on the D1 mini
+# Flashing the D1 mini
 
 ## Requirements
 
-- Home Assistant with the ESPHome Device Builder app;
-- a D1 mini reachable through USB or the network;
-- `firmware/orconfanbox.yaml` from this folder;
-- for a first USB installation: a USB data cable.
+- Home Assistant with the **ESPHome Device Builder**, or ESPHome on a PC;
+- all files from [`../firmware`](../firmware);
+- for the first install: a USB data cable.
 
-## Make a backup first
+## Preparation
 
-Open the existing OrconFanBox configuration in ESPHome and save a copy of its current YAML. Record any Wi-Fi and OTA settings that must be retained.
-
-## Update an existing device over the network
-
-1. Open **Home Assistant → ESPHome Device Builder**.
-2. Open **OrconFanBox** and select **Edit**.
-3. Replace the YAML with the contents of `firmware/orconfanbox.yaml`.
-4. Retain personal Wi-Fi, API, and OTA passwords from the existing configuration when required. Never publish these passwords on GitHub.
-5. Select **Save**.
-6. Select **Install** and then **Wirelessly**.
-7. Wait for compilation, upload, and restart to finish completely.
-8. Verify that OrconFanBox returns to **Online**.
-
-## First installation over USB
-
-1. Connect the D1 mini with a USB data cable.
-2. Open **ESPHome Device Builder** and, if necessary, create a device named `orconfanbox`.
-3. Select **Edit** and place the contents of `firmware/orconfanbox.yaml` in the editor.
-4. Select **Save**, followed by **Install**.
-5. Choose the USB installation method matching the connection: this computer or the Home Assistant server.
-6. Select the correct serial port and start installation.
-7. Do not disconnect USB until ESPHome reports a successful installation.
-8. Connect to **OrconFanBox Setup** and configure Wi-Fi. Open `http://192.168.4.1` if necessary.
-
-## Verification
-
-1. Wait for the device to appear as **Online** in ESPHome.
-2. Open the ESPHome device in Home Assistant.
-3. Verify at least `Orcon_Fan_Speed`, `Orcon_Unit_Bypass`, and `Orcon_Tacho`.
-4. Test with a low fan speed first and check the tachometer value.
+1. Copy **all** files from `firmware/` to your ESPHome folder (Home Assistant: `/config/esphome/`).
+2. Copy `secrets.example.yaml` to `secrets.yaml` (or extend your existing one) with `wifi_ssid`, `wifi_password`, `ota_password` and `ap_password`.
+3. Optionally change the web login at the top of `orconfanbox.yaml`: `web_gebruiker` and `web_wachtwoord` (default admin / admin).
 
 > [!WARNING]
-> Do not interrupt power while flashing. Isolate the installation and have 230 V work performed by a suitably qualified person.
+> Never publish `secrets.yaml` on GitHub.
+
+## First install via USB
+
+1. Connect the D1 mini with a USB data cable.
+2. Open `orconfanbox.yaml` in ESPHome and choose **Install** → USB.
+3. Wait until ESPHome reports success.
+4. If the box cannot find your Wi-Fi it starts the access point **OrconFanBox Setup**. Connect to it and open `http://192.168.4.1` to choose your network.
+
+## Updating over the network (OTA)
+
+1. Replace the files in your ESPHome folder with the new version.
+2. Choose **Install** → **Wirelessly**.
+3. Your settings and the chart are kept.
+
+Alternative: on the web page under **Systeem** choose a compiled `.bin` file and click **Update**.
+
+## Check
+
+- the web page opens and shows values;
+- `http://<ip>/diag` shows `grafiek flash: ok`;
+- Home Assistant shows the device **OrconFanBox** with all entities.

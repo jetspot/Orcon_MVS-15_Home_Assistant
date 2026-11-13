@@ -1,78 +1,76 @@
-# Orcon Fan Box für Home Assistant
+# OrconFanBox für Home Assistant
 
-Vollständige deutschsprachige Dokumentation für die OrconFanBox-Firmware, die Home-Assistant-Dashboardkarte und die Installation.
+ESPHome-Firmware (v11.17) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
 
 > [!IMPORTANT]
-> Zuerst muss die mitgelieferte neue ESPHome-Firmware aus `firmware/orconfanbox.yaml` auf den D1 mini geflasht werden. Ohne diese Firmware funktionieren die beschriebenen Entitäten und die Home-Assistant-Dashboardkarte nicht korrekt.
+> Alle Firmware-Dateien liegen im Ordner [`../firmware`](../firmware). Legen Sie **alle** Dateien in denselben ESPHome-Ordner; die YAML verwendet die `.h`- und `.js`-Dateien.
 
-## Neue Funktionen dieser Firmware
+![Webseite am PC](../screenshots/webpagina-pc.png)
 
-- erste WLAN-Einrichtung über den temporären Zugangspunkt **OrconFanBox Setup** und das Captive Portal;
-- direkte Home-Assistant-Verbindung über die native ESPHome-API;
-- spätere Firmware-Updates über OTA, ohne den D1 mini erneut über USB anzuschließen;
-- native Ventilatorsteuerung mit einstellbarer Drehzahl von 0 bis 100 %;
-- PWM-Drehzahlregelung über D6;
-- separate Bedienelemente für niedrige (30 %), mittlere (60 %) und hohe Stufe (100 %);
-- 15-Minuten-Boost mit Abbruchfunktion;
-- automatische Feuchteregelung mit einstellbaren Start- und Stoppgrenzen;
-- manuelle Steuerung des Bypass-Relais über `Orcon_Fan_Bypass`;
-- automatische Aktivierung des Bypass, während der Ventilator läuft, und Deaktivierung beim Stoppen;
-- Messung von Temperatur, Luftfeuchtigkeit und Luftdruck mit einem optionalen BME280;
-- Tachometermessung der tatsächlichen Ventilatordrehzahl;
-- verzögerte Erkennung eines Ventilatorfehlers, wenn der Ventilator eingeschaltet ist, aber keine Drehzahl gemessen wird;
-- Statussensor `Orcon_Fan_Status` mit `OK` oder `Error`;
-- Messung der Drehzahlanforderung der originalen Orcon-Steuerung als Pulslänge;
-- einsatzbereite Home-Assistant-Dashboardkarte für Drehzahl, Ein/Aus und Bypass.
+## Funktionen
 
-![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
+**Lüfter**
+- Drehzahl 0–100 % per PWM an D6, Tachomessung an D5;
+- Bypass-Relais an D8, mit dem Lüfter gekoppelt (Lüfter an = Bypass an);
+- Stufen Niedrig, Mittel und Hoch (einstellbar) und eine Boost-Taste mit einstellbarer Dauer;
+- Störungserkennung: Lüfter an, aber keine Drehzahl → `Orcon_Fan_Failure`.
 
-[OrconWifiController auf Tindie ansehen](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
+**Feuchte-Boost (BME280 an D1/D2)**
+- die Firmware lernt die normale Luftfeuchtigkeit (*Baseline*) selbst;
+- Boost startet bei einem einstellbaren **Anstieg** über der Baseline (Standard +8 Prozentpunkte);
+- **variabler Boost**: die Drehzahl folgt dem Anstieg, von *Drehzahl beim Start* (40 %) bis *max. Drehzahl* (80 %), und ab *Anstieg für volle Leistung* (+20) auf *volle Drehzahl* (100 %);
+- nach dem Spitzenwert wird die Drehzahl schrittweise reduziert;
+- minimale und maximale Boost-Dauer, Nachphase und Erkennung einer zweiten Dusche.
+
+**Nachtmodus** mit Start- und Endzeit und eigener Drehzahl.
+
+**Fernbedienung**: das Signal der originalen Orcon-Bedienung (D7) wird gemessen (Pulsbreite, Periode, Frequenz) und kann optional übernommen werden; die Pulswerte je Stufe sind kalibrierbar.
+
+**Zuverlässige Speicherung**: alle Einstellungen liegen in einem festen, kompakten Speicherblock im Flash und überstehen Neustart, Stromausfall und Firmware-Update.
+
+**7-Tage-Diagramm**: Feuchte, Baseline und Lüfterdrehzahl, alle 5 Minuten und bei jeder Drehzahländerung ein Punkt. Gespeichert in einem freien Flash-Bereich (48 KB), bleibt also auch nach einem Neustart erhalten. Die Anzahl der Tage (1–7) wählen Sie über dem Diagramm.
+
+## Webseite
+
+Öffnen Sie `http://orconfanbox.local` oder die IP-Adresse (Standard-Login **admin / admin**, änderbar oben in der YAML: `web_gebruiker` / `web_wachtwoord`).
+
+- Gruppen: Übersicht, Bedienung, Diagramm, System, Lüfterstufen, Feuchte-Boost, Nachtmodus, Fernbedienung (Beschriftung auf Niederländisch);
+- jede Gruppe ist ein- und ausklappbar; die Seite merkt sich Ihre Wahl;
+- Eingabefelder zeigen nur Wert und Einheit; der erlaubte Bereich erscheint neben dem Feld, sobald Sie hineintippen;
+- geeignet für PC (zwei Spalten) und Smartphone (eine Spalte).
+
+| Smartphone | Diagramm |
+|---|---|
+| ![Smartphone](../screenshots/webpagina-telefoon.png) | ![Diagramm](../screenshots/grafiek.png) |
+
+**Diagnose:** `http://<ip>/diag` zeigt Neustartgrund, freien Speicher, Laufzeit, Diagrammpunkte und die niedrigsten Speicherwerte dieser und der vorherigen Sitzung.
 
 ## Inhalt
 
-- `firmware/orconfanbox.yaml` - ESPHome-Firmware
-- `dashboard/orconfanbox-card.yaml` - Home-Assistant-Dashboardkarte
-- `INSTALLATION.md` - Installation und Inbetriebnahme
-- `FIRMWARE_INSTALLIEREN.md` - Schritt-für-Schritt-Installation auf dem D1 mini
-
-## WLAN einrichten
-
-Die öffentliche Firmware enthält keine persönlichen WLAN-Zugangsdaten. Nach dem ersten Start:
-
-1. Mit **OrconFanBox Setup** verbinden.
-2. Falls das Portal nicht automatisch erscheint, `http://192.168.4.1` öffnen.
-3. Das eigene WLAN auswählen und das Passwort eingeben.
-4. Nach dem Neustart ist das Gerät normalerweise unter `orconfanbox.local` erreichbar.
+- [`../firmware/orconfanbox.yaml`](../firmware/orconfanbox.yaml) – ESPHome-Konfiguration
+- `../firmware/orcon_opslag.h` – fester Speicherblock für die Einstellungen
+- `../firmware/orcon_grafiek.h` – Diagramm im Flash, Startseite und `/diag`
+- `../firmware/orcon_d7.h` – Messung der Fernbedienung an D7
+- `../firmware/orcon_webgui.js` – Webseite
+- `../firmware/secrets.example.yaml` – Vorlage für Ihre Passwörter
+- [`dashboard/orconfanbox-card.yaml`](dashboard/orconfanbox-card.yaml) – Home-Assistant-Dashboardkarte
+- [`FIRMWARE_INSTALLIEREN.md`](FIRMWARE_INSTALLIEREN.md) – Firmware auf den D1 mini flashen
+- [`INSTALLATION.md`](INSTALLATION.md) – Anschluss und Inbetriebnahme
 
 ## Home-Assistant-Entitäten
 
-Die Firmware stellt diese zwanzig Entitäten bereit:
+Die Entitäts-IDs basieren auf dem Gerätenamen (z. B. `sensor.orconfanbox_orcon_air_humidity`). Prüfen Sie immer die Entitätenliste Ihres ESPHome-Geräts.
 
-- `fan.orconfanbox_orcon_fan_speed` - Ventilator Ein/Aus und Drehzahl 0-100%;
-- `sensor.orconfanbox_orcon_fan_percentage` - aktuell eingestellte Lüfterstufe in Prozent;
-- `switch.orconfanbox_orcon_fan_bypass` - manueller Bypass;
-- `switch.orconfanbox_orcon_humidity_automatic` - automatische Feuchteregelung;
-- `button.orconfanbox_orcon_fan_low` - niedrige Stufe, 30%;
-- `button.orconfanbox_orcon_fan_medium` - mittlere Stufe, 60%;
-- `button.orconfanbox_orcon_fan_high` - hohe Stufe, 100%;
-- `button.orconfanbox_orcon_fan_boost_15_minutes` - 15-Minuten-Boost;
-- `button.orconfanbox_orcon_fan_boost_cancel` - Boost abbrechen und Ventilator stoppen;
-- `number.orconfanbox_orcon_humidity_start` - Startgrenze der Feuchteregelung;
-- `number.orconfanbox_orcon_humidity_stop` - Stoppgrenze der Feuchteregelung;
-- `number.orconfanbox_orcon_humidity_fan_speed` - einstellbare Lüfterstufe bei hoher Feuchte, standardmäßig 80 %;
-- `number.orconfanbox_orcon_fan_boost_minutes` - einstellbare Boostdauer, standardmäßig 15 Minuten;
-- `sensor.orconfanbox_orcon_air_temp` - Lufttemperatur;
-- `sensor.orconfanbox_orcon_air_pressure` - Luftdruck;
-- `sensor.orconfanbox_orcon_air_humidity` - Luftfeuchtigkeit;
-- `sensor.orconfanbox_orcon_fan_tacho` - tatsächliche Ventilatordrehzahl;
-- `sensor.orconfanbox_orcon_fan_speed_requested` - Anforderung der Originalsteuerung;
-- `sensor.orconfanbox_orcon_fan_status` - Ventilatorstatus `OK` oder `Error`.
-- `update.orconfanbox_firmware` - standardmäßig deaktivierte ESPHome-Entität für Firmware-Updates.
-
-Home Assistant kann abhängig von der Gerätebenennung leicht abweichende Entitäts-IDs erzeugen. Deshalb immer die Entitätsliste des ESPHome-Geräts prüfen.
-
-Die Firmware aktiviert den Bypass automatisch, während der Ventilator läuft, und deaktiviert ihn, wenn der Ventilator stoppt.
+| Typ | Entitäten |
+|---|---|
+| Lüfter | `Orcon_Fan_Speed` |
+| Schalter | `Orcon_Fan_Bypass`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Variable_Boost`, `Orcon_Night_Mode`, `Orcon_Remote_Control` |
+| Tasten | `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_High`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel` |
+| Sensoren | `Orcon_Fan_Percentage`, `Orcon_Fan_Tacho`, `Orcon_Fan_Speed_Requested`, `Orcon_Air_Temp`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Humidity_Baseline`, `Orcon_Humidity_Rise`, `Orcon_Humidity_Peak`, `Orcon_Humidity_Post_Min`, `Orcon_Remote_Pulse_us`, `Orcon_Remote_Period_us`, `Orcon_Remote_Freq_Hz` |
+| Binärsensoren | `Orcon_Fan_Failure`, `Orcon_Humidity_Boost` |
+| Textsensoren | `Orcon_Status_Info`, `Orcon_Fan_Status`, `Orcon_Remote_Stand` |
+| Einstellungen (Zahlen) | `Orcon_Normal_Fan_Speed`, `Orcon_Fan_Low_Speed`, `Orcon_Fan_Medium_Speed`, `Orcon_Fan_High_Speed`, `Orcon_Fan_Boost_Minutes`, `Orcon_Humidity_Rise_Start`, `Orcon_Humidity_Boost_Stop`, `Orcon_Humidity_Rise_Stop`, `Orcon_Humidity_Rise_Restart`, `Orcon_Humidity_Min_Boost_Minutes`, `Orcon_Humidity_Max_Boost_Minutes`, `Orcon_Humidity_Fan_Speed`, `Orcon_Humidity_Boost_Min_Speed`, `Orcon_Humidity_Full_Rise`, `Orcon_Humidity_Full_Speed`, `Orcon_Night_Start_Hour`, `Orcon_Night_End_Hour`, `Orcon_Night_Fan_Speed`, `Orcon_Remote_Auto_us`, `Orcon_Remote_Afwezig_us`, `Orcon_Remote_Stand1_us`, `Orcon_Remote_Stand2_us`, `Orcon_Remote_Stand3_us`, `Orcon_Remote_Tolerance_us` |
 
 ## Sicherheit
 
-Die Anlage spannungsfrei schalten. Arbeiten an 230 V müssen von einer entsprechend qualifizierten Fachkraft ausgeführt werden.
+Schalten Sie die Anlage spannungsfrei und lassen Sie Arbeiten an 230 V von einer Fachkraft ausführen.

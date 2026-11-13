@@ -1,28 +1,29 @@
-# Installation und Inbetriebnahme
+# Anschluss und Inbetriebnahme
 
 ## Sicherheit
 
-Die Anlage spannungsfrei schalten, den spannungsfreien Zustand prüfen und Arbeiten an Netzspannung durch eine qualifizierte Fachkraft ausführen lassen.
+Schalten Sie die Anlage spannungsfrei, prüfen Sie dies, und lassen Sie Arbeiten an Netzspannung von einer Fachkraft ausführen.
 
-## Erste WLAN-Konfiguration
+## Anschlüsse D1 mini
 
-1. `firmware/orconfanbox.yaml` auf den D1 mini flashen.
-2. Mit **OrconFanBox Setup** verbinden.
-3. Falls erforderlich, `http://192.168.4.1` öffnen.
-4. Das lokale WLAN auswählen und das Passwort eingeben.
-5. Nach dem Neustart ist das Gerät normalerweise unter `orconfanbox.local` erreichbar.
+| Pin | Funktion |
+|---|---|
+| D6 | PWM-Steuerung Lüfter (50 kHz) |
+| D5 | Tacho (Drehzahl) |
+| D8 | Bypass-Relais |
+| D7 | Signal der originalen Orcon-Bedienung |
+| D2 / D1 | BME280 SDA / SCL (Adresse 0x76) |
 
-## Home Assistant
+## Erster Start
 
-Diese Funktionen prüfen:
+1. Firmware flashen (siehe [FIRMWARE_INSTALLIEREN.md](FIRMWARE_INSTALLIEREN.md)).
+2. `http://orconfanbox.local` öffnen (admin / admin).
+3. Unter **Overzicht** Feuchte, Temperatur und Drehzahl prüfen.
+4. Unter **Ventilatorstanden** die normale Drehzahl einstellen.
+5. Die Baseline (normale Luftfeuchtigkeit) stellt sich in den ersten Stunden selbst ein.
 
-- Ventilator: `orcon_fan_speed`;
-- Relais/Bypass: `orcon_speed_bypass`;
-- Drehzahlsensor: `orcon_tacho`;
-- Anforderung der Originalsteuerung: `orcon_speed_requested`.
+## Probleme
 
-## Diagnose
-
-- Kein BME280: Stromversorgung, Masse, SDA, SCL und Adresse `0x76` oder `0x77` prüfen.
-- Kein WLAN: Netzwerk erneut über den temporären Zugangspunkt konfigurieren.
-- Keine Drehzahlrückmeldung: D5/Tacho-Anschluss prüfen.
+- **Keine Feuchte/Temperatur:** Versorgung, GND, SDA/SCL und Adresse 0x76/0x77 prüfen.
+- **Keine Drehzahl:** Tacho-Anschluss an D5 prüfen.
+- **Box startet von selbst neu:** unter `/diag` Neustartgrund und niedrigste Speicherwerte prüfen.

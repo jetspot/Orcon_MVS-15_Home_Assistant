@@ -1,0 +1,1718 @@
+substitutions:
+  versie: "11.17"
+  # Inlog van de webpagina (gebruikersnaam en wachtwoord)
+  web_gebruiker: "admin"
+  web_wachtwoord: "admin"
+  # Eenmalige omzetting naar het opslagblok (alleen v11). Daarna op "false" zetten!
+  migratie: "false"
+
+esphome:
+  name: orconfanbox
+  # v11: variabele boost + vast opslagblok
+  friendly_name: OrconFanBox
+  # v8: eigen D7-meting (pulsbreedte + frequentie)
+  includes:
+    - orcon_d7.h
+    - orcon_opslag.h
+    - orcon_grafiek.h
+  on_boot:
+  # v11.5: grafiekgegevens via /grafiek.bin
+  - priority: -200
+    then:
+      - lambda: |-
+          orc_fl_init();
+          orc_mem_init();
+          esphome::web_server_base::global_web_server_base->add_handler(new OrcGrafiekHandler());
+          esphome::web_server_base::global_web_server_base->add_handler(new OrcDiagHandler());
+          esphome::web_server_base::global_web_server_base->add_handler(new OrcMeetHandler());
+  # v11: vast opslagblok als EERSTE flash-voorkeur
+  - priority: 950
+    then:
+      - lambda: |-
+          // v11.8: eigen startpagina vóór de standaard webserver registreren
+          esphome::web_server_base::global_web_server_base->add_handler(new OrcIndexHandler("${web_gebruiker}", "${web_wachtwoord}"));
+          orc_pref() = global_preferences->make_preference<OrcOpslag>(ORC_MAGIC, true);
+          OrcOpslag d{};
+          bool ok = orc_pref().load(&d) && d.magic == ORC_MAGIC;
+          if (!ok && ${migratie}) {
+            // Eenmalige omzetting v11 (waarden uitgelezen uit v10)
+            d = OrcOpslag{};
+            d.magic = ORC_MAGIC;
+              d.num[0] = 11.0000f;
+              d.num[1] = 15.0000f;
+              d.num[2] = 80.0000f;
+              d.num[3] = 8.0000f;
+              d.num[4] = 3.0000f;
+              d.num[5] = 8.0000f;
+              d.num[6] = 45.0000f;
+              d.num[7] = 5.0000f;
+              d.num[8] = 10.0000f;
+              d.num[9] = 5.0000f;
+              d.num[10] = 23.0000f;
+              d.num[11] = 7.0000f;
+              d.num[12] = 8.0000f;
+              d.num[13] = 30.0000f;
+              d.num[14] = 60.0000f;
+              d.num[15] = 100.0000f;
+              d.num[16] = 51.0000f;
+              d.num[17] = 51.0000f;
+              d.num[18] = 101.0000f;
+              d.num[19] = 350.0000f;
+              d.num[20] = 390.0000f;
+              d.num[21] = 20.0000f;
+              d.num[22] = 40.0000f;
+              d.num[23] = 20.0000f;
+              d.num[24] = 100.0000f;
+            d.schakel = 19;
+            d.baseline = 41.36f;
+            ok = true;
+            ESP_LOGW("opslag", "Omzetting naar vast opslagblok uitgevoerd");
+          }
+          if (ok) { orc_geladen() = d; id(orcon_baseline_saved) = d.baseline; ESP_LOGI("opslag", "Opslagblok geladen"); }
+          else ESP_LOGW("opslag", "Geen opslagblok: standaardwaarden");
+  # v11: waarden toepassen zodra de entiteiten bestaan
+  - priority: 550
+    then:
+      - lambda: |-
+          OrcOpslag &d = orc_geladen();
+          esphome::number::Number *N[] = {id(orcon_normal_speed), id(orcon_boost_minutes), id(orcon_humidity_speed), id(orcon_humidity_rise_start), id(orcon_humidity_rise_stop), id(orcon_humidity_peak_drop), id(orcon_humidity_max_boost_minutes), id(orcon_humidity_rise_restart), id(orcon_humidity_boost_stop), id(orcon_humidity_min_boost_minutes), id(orcon_night_start), id(orcon_night_end), id(orcon_night_speed), id(orcon_low_speed), id(orcon_medium_speed), id(orcon_high_speed), id(orcon_remote_auto_us), id(orcon_remote_afwezig_us), id(orcon_remote_s1_us), id(orcon_remote_s2_us), id(orcon_remote_s3_us), id(orcon_remote_tolerance), id(orcon_boost_min), id(orcon_full_rise), id(orcon_full_speed)};
+          uint32_t b = 1 | 2 | 8 | 16;   // standaard: bypass, automatisch, afstandsbediening, variabele boost aan
+          if (d.magic == ORC_MAGIC) {
+            for (int i = 0; i < 25; i++) {
+              float v = d.num[i];
+              if (std::isfinite(v)) { auto c = N[i]->make_call(); c.set_value(v); c.perform(); }
+            }
+            b = d.schakel;
+          }
+          if (b & 1) id(orcon_speed_bypass).turn_on(); else id(orcon_speed_bypass).turn_off();
+          if (b & 2) id(orcon_humidity_auto).turn_on(); else id(orcon_humidity_auto).turn_off();
+          if (b & 4) id(orcon_night_mode).turn_on(); else id(orcon_night_mode).turn_off();
+          if (b & 8) id(orcon_remote_control).turn_on(); else id(orcon_remote_control).turn_off();
+          if (b & 16) id(orcon_var_boost).turn_on(); else id(orcon_var_boost).turn_off();
+          id(orc_klaar) = true;
+  - priority: 600
+    then:
+      - lambda: d7_begin();
+
+esp8266:
+  board: d1_mini
+  restore_from_flash: true
+
+preferences:
+  flash_write_interval: 5s
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "OrconFanBox Setup"
+    password: !secret ap_password
+
+captive_portal:
+
+web_server:
+  port: 80
+  version: 3
+  local: false
+  js_url: ""
+  js_include: "orcon_webgui.js"
+  auth:
+    username: ${web_gebruiker}
+    password: ${web_wachtwoord}
+  sorting_groups:
+    - id: grp_status
+      name: "Status"
+      sorting_weight: 10
+    - id: grp_bediening
+      name: "Bediening"
+      sorting_weight: 20
+    - id: grp_instellingen
+      name: "Instellingen"
+      sorting_weight: 30
+
+i2c:
+  sda: D2
+  scl: D1
+  scan: true
+  frequency: 50kHz
+
+time:
+  - platform: sntp
+    id: orcon_time
+    timezone: Europe/Amsterdam
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+  # v11.7: reserve-tijdbron via Home Assistant (SNTP wordt niet beantwoord)
+  - platform: homeassistant
+    id: orcon_ha_time
+    timezone: Europe/Amsterdam
+
+globals:
+  - id: orc_klaar
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  # v11: huidige snelheid van de variabele boost (-1 = niet actief)
+  - id: orcon_boost_doel
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+  - id: orcon_humidity_baseline
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  - id: orcon_humidity_boost_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: orcon_humidity_peak
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  - id: orcon_humidity_boost_seconds
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+  - id: orcon_humidity_stop_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+  # v2: laagste vochtigheid sinds het einde van de laatste boost
+  # (-1 = geen nafase actief). Gebruikt om een tweede douche te herkennen.
+  - id: orcon_humidity_post_min
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  # v2: aantal seconden in de nafase na een boost
+  - id: orcon_humidity_post_seconds
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+  # v6: baseline bewaard in flash (hooguit 1x per uur geschreven)
+  - id: orcon_baseline_saved
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
+
+  # v6: nachtstand op dit moment actief
+  - id: orcon_night_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  # v7: afstandsbediening (-1 onbekend, 0 auto/afwezig, 1, 2, 3)
+  - id: orcon_remote_stand
+    type: int
+    restore_value: no
+    initial_value: '-1'
+
+  - id: orcon_remote_candidate
+    type: int
+    restore_value: no
+    initial_value: '-1'
+
+  - id: orcon_remote_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+  # v7: snelheid opgelegd door afstandsbediening (0 = geen)
+  - id: orcon_remote_override
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+output:
+  - platform: esp8266_pwm
+    id: orcon_pwm_out
+    pin: D6
+    frequency: 1000 Hz
+    inverted: true
+
+switch:
+  - platform: gpio
+    id: orcon_speed_bypass
+    name: "Orcon_Fan_Bypass"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 8
+    icon: "mdi:swap-horizontal"
+    pin: D8
+    restore_mode: DISABLED
+    # v10: bypass aan -> ventilator aan, bypass uit -> ventilator uit
+    on_turn_on:
+      - if:
+          condition:
+            lambda: 'return !id(orcon_fan_speed).state;'
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  if (id(orcon_remote_override) > 0) return id(orcon_remote_override);
+                  if (id(orcon_humidity_boost_active)) return (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state);
+                  return (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+    on_turn_off:
+      - if:
+          condition:
+            lambda: 'return id(orcon_fan_speed).state;'
+          then:
+            - fan.turn_off: orcon_fan_speed
+
+  - platform: template
+    id: orcon_humidity_auto
+    name: "Orcon_Humidity_Automatic"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 1
+    icon: "mdi:water-percent"
+    optimistic: true
+    restore_mode: DISABLED
+
+    turn_on_action:
+      - lambda: |-
+          if (!isnan(id(orcon_humidity).state)) {
+            id(orcon_humidity_baseline) = id(orcon_humidity).state;
+          } else {
+            id(orcon_humidity_baseline) = -1.0;
+          }
+
+          id(orcon_humidity_boost_active) = false;
+          id(orcon_humidity_peak) = -1.0;
+          id(orcon_humidity_boost_seconds) = 0;
+          id(orcon_humidity_stop_counter) = 0;
+          id(orcon_humidity_post_min) = -1.0;
+          id(orcon_humidity_post_seconds) = 0;
+
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: !lambda |-
+            return id(orcon_remote_override) > 0 ? id(orcon_remote_override) : (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+
+      - switch.turn_on: orcon_speed_bypass
+
+      - logger.log:
+          format: "Automatische vochtregeling AAN"
+
+    turn_off_action:
+      - lambda: |-
+          id(orcon_humidity_boost_active) = false;
+          id(orcon_humidity_peak) = -1.0;
+          id(orcon_humidity_boost_seconds) = 0;
+          id(orcon_humidity_stop_counter) = 0;
+          id(orcon_humidity_post_min) = -1.0;
+          id(orcon_humidity_post_seconds) = 0;
+
+      - fan.turn_off: orcon_fan_speed
+
+      - logger.log:
+          format: "Automatische vochtregeling UIT"
+
+  # v11: variabele boost aan/uit
+  - platform: template
+    id: orcon_var_boost
+    name: "Orcon_Humidity_Variable_Boost"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 30
+    icon: "mdi:chart-line-variant"
+    optimistic: true
+    restore_mode: DISABLED
+
+  # v6: nachtstand aan/uit
+  - platform: template
+    id: orcon_night_mode
+    name: "Orcon_Night_Mode"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 20
+    icon: "mdi:weather-night"
+    optimistic: true
+    restore_mode: DISABLED
+
+  # v7: ESP volgt de afstandsbediening (1/2/3)
+  - platform: template
+    id: orcon_remote_control
+    name: "Orcon_Remote_Control"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 9
+    icon: "mdi:remote"
+    optimistic: true
+    restore_mode: DISABLED
+    on_turn_off:
+      - lambda: |-
+          id(orcon_remote_override) = 0;
+          if (id(orcon_humidity_auto).state && !id(orcon_boost_15m).is_running()) {
+            int sp = id(orcon_humidity_boost_active) ? (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state) : (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+            auto call = id(orcon_fan_speed).turn_on();
+            call.set_speed(sp);
+            call.perform();
+          }
+
+fan:
+  - platform: speed
+    id: orcon_fan_speed
+    name: "Orcon_Fan_Speed"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 2
+    icon: "mdi:fan"
+    output: orcon_pwm_out
+    speed_count: 100
+    restore_mode: ALWAYS_OFF
+
+    # v10: ventilator aan -> bypass aan
+    on_turn_on:
+      - if:
+          condition:
+            switch.is_off: orcon_speed_bypass
+          then:
+            - switch.turn_on: orcon_speed_bypass
+
+    # v10: ventilator uit = bypass uit en automatische vochtregeling uit
+    on_turn_off:
+      - if:
+          condition:
+            switch.is_on: orcon_humidity_auto
+          then:
+            - switch.turn_off: orcon_humidity_auto
+      - if:
+          condition:
+            switch.is_on: orcon_speed_bypass
+          then:
+            - switch.turn_off: orcon_speed_bypass
+
+sensor:
+  - platform: template
+    id: orcon_fan_percentage
+    name: "Orcon_Fan_Percentage"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 1
+    icon: "mdi:percent-circle-outline"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (!id(orcon_fan_speed).state) {
+        return 0.0;
+      }
+      return id(orcon_fan_speed).speed;
+
+  - platform: pulse_counter
+    pin: D5
+    id: orcon_tacho
+    name: "Orcon_Fan_Tacho"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 11
+    icon: "mdi:speedometer"
+    force_update: true
+    update_interval: 5s
+    accuracy_decimals: 0
+    internal_filter: 5ms
+    count_mode:
+      falling_edge: INCREMENT
+      rising_edge: DISABLE
+
+  - platform: template
+    lambda: |-
+      if (!d7_active()) return NAN;
+      return d7_high_us / 1000000.0;
+    id: orcon_speed_requested
+    name: "Orcon_Fan_Speed_Requested"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 12
+    icon: "mdi:remote"
+    update_interval: 5s
+    accuracy_decimals: 8
+    # v7: stand van de afstandsbediening herkennen (2 gelijke metingen nodig)
+    on_value:
+      - lambda: |-
+          if (isnan(x)) return;
+          float us = x * 1000000.0;
+          // v9: dichtstbijzijnde stand binnen de tolerantie (0 auto, 4 afwezig, 1, 2, 3)
+          float tol = id(orcon_remote_tolerance).state;
+          float ref[5] = {
+            id(orcon_remote_auto_us).state, id(orcon_remote_afwezig_us).state,
+            id(orcon_remote_s1_us).state, id(orcon_remote_s2_us).state, id(orcon_remote_s3_us).state };
+          int code[5] = {0, 4, 1, 2, 3};
+          int st = -1;
+          float best = tol + 0.001;
+          for (int i = 0; i < 5; i++) {
+            float d = fabs(us - ref[i]);
+            if (d < best) { best = d; st = code[i]; }
+          }
+          // auto en afwezig gelijk ingesteld -> samen als auto
+          if (st == 4 && fabs(ref[0] - ref[1]) < 0.5) st = 0;
+          if (st != id(orcon_remote_candidate)) {
+            id(orcon_remote_candidate) = st;
+            id(orcon_remote_count) = 1;
+            return;
+          }
+          if (id(orcon_remote_count) < 2) id(orcon_remote_count)++;
+          if (st < 0 || id(orcon_remote_count) < 2 || st == id(orcon_remote_stand)) return;
+          id(orcon_remote_stand) = st;
+          ESP_LOGI("orcon", "Afstandsbediening: stand %d (%.0f us)", st, us);
+          int ov = 0;
+          if (id(orcon_remote_control).state) {
+            if (st == 1) ov = (int) id(orcon_low_speed).state;
+            else if (st == 2) ov = (int) id(orcon_medium_speed).state;
+            else if (st == 3) ov = (int) id(orcon_high_speed).state;
+          }
+          id(orcon_remote_override) = ov;
+          if (ov > 0) {
+            auto call = id(orcon_fan_speed).turn_on();
+            call.set_speed(ov);
+            call.perform();
+          } else if (id(orcon_humidity_auto).state && !id(orcon_boost_15m).is_running()) {
+            int sp = id(orcon_humidity_boost_active) ? (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state) : (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+            auto call = id(orcon_fan_speed).turn_on();
+            call.set_speed(sp);
+            call.perform();
+          }
+
+  - platform: bme280_i2c
+    temperature:
+      name: "Orcon_Air_Temp"
+      web_server:
+        sorting_group_id: grp_status
+        sorting_weight: 9
+      icon: "mdi:thermometer"
+      oversampling: 16x
+
+    pressure:
+      name: "Orcon_Air_Pressure"
+      web_server:
+        sorting_group_id: grp_status
+        sorting_weight: 10
+      icon: "mdi:gauge"
+
+    humidity:
+      id: orcon_humidity
+      name: "Orcon_Air_Humidity"
+      web_server:
+        sorting_group_id: grp_status
+        sorting_weight: 4
+      icon: "mdi:water-percent"
+
+    address: 0x76
+    update_interval: 5s
+
+  - platform: template
+    id: orcon_humidity_baseline_sensor
+    name: "Orcon_Humidity_Baseline"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 5
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      if (id(orcon_humidity_baseline) < 0.0) {
+        return NAN;
+      }
+      return id(orcon_humidity_baseline);
+
+  - platform: template
+    id: orcon_humidity_delta
+    name: "Orcon_Humidity_Rise"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 6
+    icon: "mdi:water-plus"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      if (
+        id(orcon_humidity_baseline) < 0.0 ||
+        isnan(id(orcon_humidity).state)
+      ) {
+        return NAN;
+      }
+
+      return
+        id(orcon_humidity).state -
+        id(orcon_humidity_baseline);
+
+  - platform: template
+    id: orcon_humidity_peak_sensor
+    name: "Orcon_Humidity_Peak"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 7
+    icon: "mdi:water-alert"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      if (id(orcon_humidity_peak) < 0.0) {
+        return NAN;
+      }
+      return id(orcon_humidity_peak);
+
+  # v2: laagste vochtigheid na de laatste boost (leeg = geen nafase)
+  - platform: template
+    id: orcon_humidity_post_min_sensor
+    name: "Orcon_Humidity_Post_Min"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 8
+    icon: "mdi:water-minus"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      if (id(orcon_humidity_post_min) < 0.0) {
+        return NAN;
+      }
+      return id(orcon_humidity_post_min);
+
+  # v7: pulsbreedte afstandsbediening in microseconden
+  - platform: template
+    id: orcon_remote_pulse_us
+    name: "Orcon_Remote_Pulse_us"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 3
+    icon: "mdi:remote"
+    unit_of_measurement: "us"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (isnan(id(orcon_speed_requested).state)) return NAN;
+      return id(orcon_speed_requested).state * 1000000.0;
+
+  # v8: frequentie en periode van het afstandsbedieningssignaal
+  - platform: template
+    id: orcon_remote_freq
+    name: "Orcon_Remote_Freq_Hz"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 4
+    icon: "mdi:sine-wave"
+    unit_of_measurement: "Hz"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      static uint32_t lc = 0, lt = 0;
+      uint32_t c = d7_count, t = millis();
+      float f = (lt != 0 && t > lt) ? (c - lc) * 1000.0 / (t - lt) : NAN;
+      lc = c; lt = t;
+      return f;
+
+  - platform: template
+    id: orcon_remote_period
+    name: "Orcon_Remote_Period_us"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 5
+    icon: "mdi:timer-outline"
+    unit_of_measurement: "us"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!d7_active()) return NAN;
+      return (float) d7_period_us;
+
+script:
+  - id: orcon_restore_bypass
+    mode: restart
+    then:
+      - delay: 100ms
+      - if:
+          condition:
+            lambda: |-
+              return
+                id(orcon_humidity_auto).state ||
+                (
+                  id(orcon_fan_speed).state &&
+                  id(orcon_fan_speed).speed > 0
+                );
+          then:
+            - switch.turn_on: orcon_speed_bypass
+
+  - id: orcon_boost_15m
+    mode: restart
+    then:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: 100
+
+      - delay: !lambda |-
+          return
+            (uint32_t)
+            (id(orcon_boost_minutes).state * 60000);
+
+      - if:
+          condition:
+            switch.is_on: orcon_humidity_auto
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  if (id(orcon_remote_override) > 0) return id(orcon_remote_override);
+                  if (id(orcon_humidity_boost_active)) return (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state);
+                  return (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+          else:
+            - fan.turn_off: orcon_fan_speed
+
+button:
+  - platform: template
+    name: "Orcon_Fan_Low"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 3
+    icon: "mdi:fan-speed-1"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: !lambda return (int) id(orcon_low_speed).state;
+
+  - platform: template
+    name: "Orcon_Fan_Medium"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 4
+    icon: "mdi:fan-speed-2"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: !lambda return (int) id(orcon_medium_speed).state;
+
+  - platform: template
+    name: "Orcon_Fan_High"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 5
+    icon: "mdi:fan-speed-3"
+    on_press:
+      - fan.turn_on:
+          id: orcon_fan_speed
+          speed: !lambda return (int) id(orcon_high_speed).state;
+
+  - platform: template
+    name: "Orcon_Fan_Boost_15_Minutes"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 6
+    icon: "mdi:fan-plus"
+    on_press:
+      - script.execute: orcon_boost_15m
+
+  - platform: template
+    name: "Orcon_Fan_Boost_Cancel"
+    web_server:
+      sorting_group_id: grp_bediening
+      sorting_weight: 7
+    icon: "mdi:fan-remove"
+    on_press:
+      - script.stop: orcon_boost_15m
+      - if:
+          condition:
+            switch.is_on: orcon_humidity_auto
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  if (id(orcon_remote_override) > 0) return id(orcon_remote_override);
+                  if (id(orcon_humidity_boost_active)) return (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state);
+                  return (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+          else:
+            - fan.turn_off: orcon_fan_speed
+
+number:
+  # v11: variabele boost
+  - platform: template
+    id: orcon_boost_min
+    name: "Orcon_Humidity_Boost_Min_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 31
+    icon: "mdi:fan-chevron-down"
+    unit_of_measurement: "%"
+    min_value: 20
+    max_value: 100
+    step: 1
+    initial_value: 40
+    optimistic: true
+    restore_value: false
+    mode: box
+  - platform: template
+    id: orcon_full_rise
+    name: "Orcon_Humidity_Full_Rise"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 32
+    icon: "mdi:water-plus"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 50
+    step: 1
+    initial_value: 20
+    optimistic: true
+    restore_value: false
+    mode: box
+  - platform: template
+    id: orcon_full_speed
+    name: "Orcon_Humidity_Full_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 33
+    icon: "mdi:fan-chevron-up"
+    unit_of_measurement: "%"
+    min_value: 20
+    max_value: 100
+    step: 1
+    initial_value: 100
+    optimistic: true
+    restore_value: false
+    mode: box
+  - platform: template
+    id: orcon_normal_speed
+    name: "Orcon_Normal_Fan_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 1
+    mode: box
+    icon: "mdi:fan-speed-1"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 50
+    step: 1
+    initial_value: 11
+    restore_value: false
+    optimistic: true
+
+    on_value:
+      - if:
+          condition:
+            lambda: |-
+              return
+                id(orcon_humidity_auto).state &&
+                !id(orcon_humidity_boost_active);
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  return id(orcon_remote_override) > 0 ? id(orcon_remote_override) : (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+
+  - platform: template
+    id: orcon_boost_minutes
+    name: "Orcon_Fan_Boost_Minutes"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 8
+    mode: box
+    icon: "mdi:timer-cog-outline"
+    unit_of_measurement: "min"
+    min_value: 1
+    max_value: 60
+    step: 1
+    initial_value: 15
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_speed
+    name: "Orcon_Humidity_Fan_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 2
+    mode: box
+    icon: "mdi:fan-chevron-up"
+    unit_of_measurement: "%"
+    min_value: 20
+    max_value: 100
+    step: 1
+    initial_value: 85
+    restore_value: false
+    optimistic: true
+
+    on_value:
+      - if:
+          condition:
+            lambda: |-
+              return id(orcon_humidity_boost_active);
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  return (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state);
+
+  - platform: template
+    id: orcon_humidity_rise_start
+    name: "Orcon_Humidity_Rise_Start"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 3
+    mode: box
+    icon: "mdi:water-plus"
+    unit_of_measurement: "%"
+    min_value: 3
+    max_value: 25
+    step: 1
+    initial_value: 8
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_rise_stop
+    name: "Orcon_Humidity_Rise_Stop"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 4
+    mode: box
+    icon: "mdi:water-minus"
+    unit_of_measurement: "%"
+    min_value: 1
+    max_value: 15
+    step: 1
+    initial_value: 3
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_peak_drop
+    name: "Orcon_Humidity_Peak_Drop"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 6
+    mode: box
+    icon: "mdi:water-minus-outline"
+    unit_of_measurement: "%"
+    min_value: 3
+    max_value: 20
+    step: 1
+    initial_value: 8
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_humidity_max_boost_minutes
+    name: "Orcon_Humidity_Max_Boost_Minutes"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 7
+    mode: box
+    icon: "mdi:timer-alert-outline"
+    unit_of_measurement: "min"
+    min_value: 5
+    max_value: 120
+    step: 5
+    initial_value: 45
+    restore_value: false
+    optimistic: true
+
+  # v2: tweede douche - zoveel procentpunt stijging vanaf het laagste
+  # punt na de vorige boost start direct een nieuwe boost
+  - platform: template
+    id: orcon_humidity_rise_restart
+    name: "Orcon_Humidity_Rise_Restart"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 5
+    mode: box
+    icon: "mdi:shower-head"
+    unit_of_measurement: "%"
+    min_value: 2
+    max_value: 15
+    step: 1
+    initial_value: 5
+    restore_value: false
+    optimistic: true
+
+  # v5: boost stopt zodra vocht <= baseline + deze waarde
+  - platform: template
+    id: orcon_humidity_boost_stop
+    name: "Orcon_Humidity_Boost_Stop"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 4
+    mode: box
+    icon: "mdi:water-check"
+    unit_of_measurement: "%"
+    min_value: 3
+    max_value: 30
+    step: 1
+    initial_value: 10
+    restore_value: false
+    optimistic: true
+
+  # v6: minimale boosttijd en nachtstand
+  - platform: template
+    id: orcon_humidity_min_boost_minutes
+    name: "Orcon_Humidity_Min_Boost_Minutes"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 7
+    mode: box
+    icon: "mdi:timer-sand"
+    unit_of_measurement: "min"
+    min_value: 1
+    max_value: 30
+    step: 1
+    initial_value: 5
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_night_start
+    name: "Orcon_Night_Start_Hour"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 21
+    mode: box
+    icon: "mdi:weather-sunset-down"
+    unit_of_measurement: "h"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 23
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_night_end
+    name: "Orcon_Night_End_Hour"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 22
+    mode: box
+    icon: "mdi:weather-sunset-up"
+    unit_of_measurement: "h"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 7
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_night_speed
+    name: "Orcon_Night_Fan_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 23
+    mode: box
+    icon: "mdi:fan-speed-1"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 50
+    step: 1
+    initial_value: 8
+    restore_value: false
+    optimistic: true
+
+    on_value:
+      - if:
+          condition:
+            lambda: |-
+              return
+                id(orcon_night_active) &&
+                id(orcon_remote_override) == 0 &&
+                id(orcon_humidity_auto).state &&
+                !id(orcon_humidity_boost_active) &&
+                !id(orcon_boost_15m).is_running();
+          then:
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  return (int) id(orcon_night_speed).state;
+
+  # v7: snelheden knoppen en herkenning afstandsbediening
+  - platform: template
+    id: orcon_low_speed
+    name: "Orcon_Fan_Low_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 30
+    mode: box
+    icon: "mdi:fan-speed-1"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 100
+    step: 1
+    initial_value: 30
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_medium_speed
+    name: "Orcon_Fan_Medium_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 31
+    mode: box
+    icon: "mdi:fan-speed-2"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 100
+    step: 1
+    initial_value: 60
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_high_speed
+    name: "Orcon_Fan_High_Speed"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 32
+    mode: box
+    icon: "mdi:fan-speed-3"
+    unit_of_measurement: "%"
+    min_value: 5
+    max_value: 100
+    step: 1
+    initial_value: 100
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_remote_auto_us
+    name: "Orcon_Remote_Auto_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 40
+    mode: box
+    icon: "mdi:remote"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 1000
+    step: 1
+    initial_value: 51
+    restore_value: false
+    optimistic: true
+
+  # v9: afwezig apart (gelijk aan auto = samen herkend)
+  - platform: template
+    id: orcon_remote_afwezig_us
+    name: "Orcon_Remote_Afwezig_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 40.5
+    mode: box
+    icon: "mdi:home-export-outline"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 1000
+    step: 1
+    initial_value: 51
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_remote_s1_us
+    name: "Orcon_Remote_Stand1_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 41
+    mode: box
+    icon: "mdi:remote"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 1000
+    step: 1
+    initial_value: 101
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_remote_s2_us
+    name: "Orcon_Remote_Stand2_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 42
+    mode: box
+    icon: "mdi:remote"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 1000
+    step: 1
+    initial_value: 350
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_remote_s3_us
+    name: "Orcon_Remote_Stand3_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 43
+    mode: box
+    icon: "mdi:remote"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 1000
+    step: 1
+    initial_value: 390
+    restore_value: false
+    optimistic: true
+
+  - platform: template
+    id: orcon_remote_tolerance
+    name: "Orcon_Remote_Tolerance_us"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 44
+    mode: box
+    icon: "mdi:plus-minus-variant"
+    unit_of_measurement: "us"
+    min_value: 1
+    max_value: 100
+    step: 1
+    initial_value: 20
+    restore_value: false
+    optimistic: true
+
+interval:
+  # v11.7: actuele tijd voor /grafiek.bin
+  - interval: 1s
+    then:
+      - lambda: |-
+          auto t = id(orcon_time).now();
+          orc_nu() = t.is_valid() ? (uint32_t) t.timestamp : 0;
+          orc_mem_tik(orc_nu());
+          // v11.12: extra grafiekpunt bij elke verandering van de ventilatorsnelheid (min. 10 s ertussen)
+          static int laatste = -1;
+          static uint32_t laatst_t = 0;
+          int sp = id(orcon_fan_speed).state ? id(orcon_fan_speed).speed : 0;
+          if (laatste < 0) laatste = sp;
+          if (t.is_valid() && sp != laatste && (uint32_t) t.timestamp - laatst_t >= 10) {
+            float bl = id(orcon_humidity_baseline) < 0.0f ? NAN : id(orcon_humidity_baseline);
+            orc_gr_add((uint32_t) t.timestamp, id(orcon_humidity).state, bl, (float) sp);
+            laatst_t = (uint32_t) t.timestamp;
+            laatste = sp;
+          }
+  # v11.7: elke 5 minuten een grafiekpunt in de flash (7 dagen)
+  - interval: 5min
+    startup_delay: 60s
+    then:
+      - lambda: |-
+          float sp = id(orcon_fan_speed).state ? (float) id(orcon_fan_speed).speed : 0.0f;
+          float bl = id(orcon_humidity_baseline) < 0.0f ? NAN : id(orcon_humidity_baseline);
+          auto t = id(orcon_time).now();
+          if (t.is_valid()) orc_gr_add((uint32_t) t.timestamp, id(orcon_humidity).state, bl, sp);
+  - interval: 5s
+    startup_delay: 20s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return
+                !isnan(id(orcon_humidity).state) &&
+                id(orcon_humidity_baseline) < 0.0;
+          then:
+            - lambda: |-
+                // v6: bewaarde baseline gebruiken als die geldig is
+                float sb = id(orcon_baseline_saved);
+                if (sb >= 10.0 && sb <= 95.0) {
+                  id(orcon_humidity_baseline) = sb;
+                } else {
+                  id(orcon_humidity_baseline) =
+                    id(orcon_humidity).state;
+                }
+
+                ESP_LOGI(
+                  "orcon",
+                  "Baseline ingesteld: %.1f%%",
+                  id(orcon_humidity_baseline)
+                );
+
+      - if:
+          condition:
+            lambda: |-
+              return id(orcon_humidity_boost_active);
+          then:
+            - lambda: |-
+                id(orcon_humidity_boost_seconds) += 5;
+
+                if (!isnan(id(orcon_humidity).state)) {
+                  if (
+                    id(orcon_humidity_peak) < 0.0 ||
+                    id(orcon_humidity).state >
+                    id(orcon_humidity_peak)
+                  ) {
+                    id(orcon_humidity_peak) =
+                      id(orcon_humidity).state;
+                  }
+                }
+
+      # v2: nafase na een boost - laagste punt bijhouden en
+      # beeindigen zodra de badkamer weer normaal is
+      - if:
+          condition:
+            lambda: |-
+              return
+                !id(orcon_humidity_boost_active) &&
+                id(orcon_humidity_post_min) > 0.0 &&
+                !isnan(id(orcon_humidity).state);
+          then:
+            - lambda: |-
+                float rh = id(orcon_humidity).state;
+                id(orcon_humidity_post_seconds) += 5;
+
+                if (rh < id(orcon_humidity_post_min)) {
+                  id(orcon_humidity_post_min) = rh;
+                }
+
+                if (
+                  rh <=
+                  id(orcon_humidity_baseline) +
+                  id(orcon_humidity_rise_stop).state
+                ) {
+                  ESP_LOGI(
+                    "orcon",
+                    "Nafase klaar - RH %.1f%% weer bij baseline %.1f%%",
+                    rh,
+                    id(orcon_humidity_baseline)
+                  );
+                  id(orcon_humidity_post_min) = -1.0;
+                  id(orcon_humidity_post_seconds) = 0;
+                } else if (id(orcon_humidity_post_seconds) >= 5400) {
+                  // 90 minuten later nog steeds vochtig (bijv. weer):
+                  // baseline opnieuw bepalen
+                  ESP_LOGI(
+                    "orcon",
+                    "Nafase 90 min voorbij - nieuwe baseline %.1f%%",
+                    rh
+                  );
+                  id(orcon_humidity_baseline) = rh;
+                  id(orcon_humidity_post_min) = -1.0;
+                  id(orcon_humidity_post_seconds) = 0;
+                }
+
+      - if:
+          condition:
+            lambda: |-
+              if (!id(orcon_humidity_auto).state) {
+                return false;
+              }
+
+              if (id(orcon_humidity_boost_active)) {
+                return false;
+              }
+
+              if (isnan(id(orcon_humidity).state)) {
+                return false;
+              }
+
+              if (id(orcon_humidity_baseline) < 0.0) {
+                return false;
+              }
+
+              float rh = id(orcon_humidity).state;
+
+              // v2: in de nafase na een boost telt de stijging
+              // vanaf het laagste punt (tweede douche)
+              if (id(orcon_humidity_post_min) > 0.0) {
+                return
+                  rh - id(orcon_humidity_post_min) >=
+                  id(orcon_humidity_rise_restart).state;
+              }
+
+              float verschil =
+                rh -
+                id(orcon_humidity_baseline);
+
+              return
+                verschil >=
+                id(orcon_humidity_rise_start).state;
+          then:
+            - lambda: |-
+                bool herstart = id(orcon_humidity_post_min) > 0.0;
+
+                ESP_LOGI(
+                  "orcon",
+                  "VOCHT BOOST AAN%s - RH %.1f%% / baseline %.1f%% / rise %.1f%% / laagste na vorige boost %.1f%% / snelheid %.0f%%",
+                  herstart ? " (tweede douche)" : "",
+                  id(orcon_humidity).state,
+                  id(orcon_humidity_baseline),
+                  id(orcon_humidity).state -
+                    id(orcon_humidity_baseline),
+                  id(orcon_humidity_post_min),
+                  id(orcon_humidity_speed).state
+                );
+
+                id(orcon_humidity_boost_active) = true;
+                id(orcon_boost_doel) = orc_doel(
+                  id(orcon_humidity).state - id(orcon_humidity_baseline),
+                  id(orcon_humidity_rise_start).state, id(orcon_full_rise).state,
+                  id(orcon_boost_min).state, id(orcon_humidity_speed).state, id(orcon_full_speed).state);
+
+                id(orcon_humidity_peak) =
+                  id(orcon_humidity).state;
+
+                id(orcon_humidity_boost_seconds) = 0;
+                id(orcon_humidity_stop_counter) = 0;
+                id(orcon_humidity_post_min) = -1.0;
+                id(orcon_humidity_post_seconds) = 0;
+
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  if (id(orcon_remote_override) > 0) {
+                    return id(orcon_remote_override);
+                  }
+                  if (id(orcon_boost_15m).is_running()) {
+                    return 100;
+                  }
+                  return (id(orcon_var_boost).state && id(orcon_boost_doel) > 0 ? (int) lroundf(id(orcon_boost_doel)) : (int) id(orcon_humidity_speed).state);
+
+      - if:
+          condition:
+            lambda: |-
+              if (!id(orcon_humidity_auto).state) {
+                return false;
+              }
+
+              if (!id(orcon_humidity_boost_active)) {
+                return false;
+              }
+
+              float max_seconds =
+                id(orcon_humidity_max_boost_minutes).state *
+                60.0;
+
+              if (
+                id(orcon_humidity_boost_seconds) >=
+                max_seconds
+              ) {
+                return true;
+              }
+
+              if (isnan(id(orcon_humidity).state)) {
+                return false;
+              }
+
+              float rh = id(orcon_humidity).state;
+
+              // v6: minimale boosttijd
+              if (
+                id(orcon_humidity_boost_seconds) <
+                id(orcon_humidity_min_boost_minutes).state * 60.0
+              ) {
+                return false;
+              }
+
+              // v5: boost loopt door tot het vocht weer dicht bij de
+              // baseline is (Peak_Drop wordt niet meer gebruikt)
+              return
+                rh <=
+                (
+                  id(orcon_humidity_baseline) +
+                  id(orcon_humidity_boost_stop).state
+                );
+          then:
+            - lambda: |-
+                id(orcon_humidity_stop_counter)++;
+          else:
+            - lambda: |-
+                id(orcon_humidity_stop_counter) = 0;
+
+      - if:
+          condition:
+            lambda: |-
+              return
+                id(orcon_humidity_boost_active) &&
+                id(orcon_humidity_stop_counter) >= 6;
+          then:
+            - lambda: |-
+                ESP_LOGI(
+                  "orcon",
+                  "VOCHT BOOST UIT - RH %.1f%% / piek %.1f%% / baseline blijft %.1f%%",
+                  id(orcon_humidity).state,
+                  id(orcon_humidity_peak),
+                  id(orcon_humidity_baseline)
+                );
+
+                id(orcon_humidity_boost_active) = false;
+                id(orcon_humidity_stop_counter) = 0;
+                id(orcon_humidity_boost_seconds) = 0;
+                id(orcon_humidity_peak) = -1.0;
+                id(orcon_boost_doel) = -1.0;
+
+                // v2: baseline NIET meer op de (nog hoge) actuele
+                // vochtigheid zetten. In plaats daarvan start een
+                // nafase die een tweede douche herkent.
+                if (
+                  !isnan(id(orcon_humidity).state) &&
+                  id(orcon_humidity).state >
+                  id(orcon_humidity_baseline) +
+                  id(orcon_humidity_rise_stop).state
+                ) {
+                  id(orcon_humidity_post_min) =
+                    id(orcon_humidity).state;
+                } else {
+                  id(orcon_humidity_post_min) = -1.0;
+                }
+                id(orcon_humidity_post_seconds) = 0;
+
+            - fan.turn_on:
+                id: orcon_fan_speed
+                speed: !lambda |-
+                  if (id(orcon_remote_override) > 0) {
+                    return id(orcon_remote_override);
+                  }
+                  if (id(orcon_boost_15m).is_running()) {
+                    return 100;
+                  }
+                  return id(orcon_remote_override) > 0 ? id(orcon_remote_override) : (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+
+      # v11: variabele boost - snelheid volgt de stijging
+      - lambda: |-
+          if (!id(orcon_humidity_boost_active) || !id(orcon_var_boost).state) return;
+          if (id(orcon_remote_override) > 0 || id(orcon_boost_15m).is_running()) return;
+          if (isnan(id(orcon_humidity).state) || id(orcon_humidity_baseline) < 0.0) return;
+          float stijging = id(orcon_humidity).state - id(orcon_humidity_baseline);
+          float doel = orc_doel(stijging, id(orcon_humidity_rise_start).state, id(orcon_full_rise).state,
+                                id(orcon_boost_min).state, id(orcon_humidity_speed).state, id(orcon_full_speed).state);
+          float cur = id(orcon_boost_doel);
+          if (cur < 0 || doel >= cur) cur = doel;                 // harder: direct
+          else cur = std::max(doel, cur - 5.0f / 12.0f);         // zachter: max 5% per minuut
+          id(orcon_boost_doel) = cur;
+          int sp = (int) lroundf(cur);
+          if (id(orcon_fan_speed).state && id(orcon_fan_speed).speed != sp) {
+            auto call = id(orcon_fan_speed).turn_on();
+            call.set_speed(sp);
+            call.perform();
+            ESP_LOGI("orcon", "Variabele boost: stijging %.1f%% -> %d%%", stijging, sp);
+          }
+
+      # v11: instellingen in het opslagblok bijwerken (flash alleen bij wijziging)
+      - lambda: |-
+          if (!id(orc_klaar)) return;
+          OrcOpslag d{};
+          d.magic = ORC_MAGIC;
+          esphome::number::Number *N[] = {id(orcon_normal_speed), id(orcon_boost_minutes), id(orcon_humidity_speed), id(orcon_humidity_rise_start), id(orcon_humidity_rise_stop), id(orcon_humidity_peak_drop), id(orcon_humidity_max_boost_minutes), id(orcon_humidity_rise_restart), id(orcon_humidity_boost_stop), id(orcon_humidity_min_boost_minutes), id(orcon_night_start), id(orcon_night_end), id(orcon_night_speed), id(orcon_low_speed), id(orcon_medium_speed), id(orcon_high_speed), id(orcon_remote_auto_us), id(orcon_remote_afwezig_us), id(orcon_remote_s1_us), id(orcon_remote_s2_us), id(orcon_remote_s3_us), id(orcon_remote_tolerance), id(orcon_boost_min), id(orcon_full_rise), id(orcon_full_speed)};
+          for (int i = 0; i < 25; i++) d.num[i] = N[i]->state;
+          d.schakel = (id(orcon_speed_bypass).state ? 1 : 0) | (id(orcon_humidity_auto).state ? 2 : 0) |
+                      (id(orcon_night_mode).state ? 4 : 0) | (id(orcon_remote_control).state ? 8 : 0) |
+                      (id(orcon_var_boost).state ? 16 : 0);
+          d.baseline = id(orcon_baseline_saved);
+          orc_pref().save(&d);
+
+  # Baseline langzaam mee laten lopen (niet tijdens boost of nafase).
+  # v2: dichtbij de baseline normaal (5%/min); verder erboven heel
+  # langzaam (0,5%/min), zodat een douche niet wordt "opgegeten".
+  - interval: 60s
+    startup_delay: 60s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return
+                !isnan(id(orcon_humidity).state) &&
+                !id(orcon_humidity_boost_active) &&
+                id(orcon_humidity_post_min) < 0.0;
+          then:
+            - lambda: |-
+                float rh = id(orcon_humidity).state;
+
+                if (id(orcon_humidity_baseline) < 0.0) {
+                  id(orcon_humidity_baseline) = rh;
+                } else if (
+                  rh <=
+                  id(orcon_humidity_baseline) +
+                  id(orcon_humidity_rise_stop).state
+                ) {
+                  id(orcon_humidity_baseline) =
+                    (id(orcon_humidity_baseline) * 0.95) +
+                    (rh * 0.05);
+                } else {
+                  id(orcon_humidity_baseline) =
+                    (id(orcon_humidity_baseline) * 0.995) +
+                    (rh * 0.005);
+                }
+
+  # v6: baseline elk uur bewaren (overleeft herstart en OTA)
+  - interval: 3600s
+    startup_delay: 600s
+    then:
+      - lambda: |-
+          if (
+            id(orcon_humidity_baseline) > 0.0 &&
+            !id(orcon_humidity_boost_active) &&
+            id(orcon_humidity_post_min) < 0.0 &&
+            fabs(id(orcon_humidity_baseline) - id(orcon_baseline_saved)) >= 0.5
+          ) {
+            id(orcon_baseline_saved) = id(orcon_humidity_baseline);
+            ESP_LOGI("orcon", "Baseline bewaard: %.1f%%", id(orcon_baseline_saved));
+          }
+
+  # v6: nachtstand
+  - interval: 30s
+    startup_delay: 30s
+    then:
+      - lambda: |-
+          auto t = id(orcon_time).now();
+          bool n = false;
+          if (id(orcon_night_mode).state && t.is_valid()) {
+            int h = t.hour;
+            int s = (int) id(orcon_night_start).state;
+            int e = (int) id(orcon_night_end).state;
+            n = (s > e) ? (h >= s || h < e) : (h >= s && h < e);
+          }
+          if (n != id(orcon_night_active)) {
+            int oud = (int) (id(orcon_night_active) ? id(orcon_night_speed).state : id(orcon_normal_speed).state);
+            id(orcon_night_active) = n;
+            ESP_LOGI("orcon", "Nachtstand %s", n ? "AAN" : "UIT");
+            if (
+              id(orcon_humidity_auto).state &&
+              !id(orcon_humidity_boost_active) &&
+              !id(orcon_boost_15m).is_running() &&
+              id(orcon_remote_override) == 0 &&
+              id(orcon_fan_speed).state &&
+              id(orcon_fan_speed).speed == oud
+            ) {
+              auto call = id(orcon_fan_speed).turn_on();
+              call.set_speed((int) (n ? id(orcon_night_speed).state : id(orcon_normal_speed).state));
+              call.perform();
+            }
+          }
+
+binary_sensor:
+  - platform: template
+    id: orcon_fan_failure
+    name: "Orcon_Fan_Failure"
+    device_class: problem
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 1
+
+    lambda: |-
+      if (!id(orcon_fan_speed).state) {
+        return false;
+      }
+
+      return id(orcon_tacho).state < 50.0;
+
+    filters:
+      - delayed_on: 30s
+      - delayed_off: 10s
+
+  - platform: template
+    id: orcon_humidity_boost_status
+    name: "Orcon_Humidity_Boost"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 3
+    icon: "mdi:shower"
+
+    lambda: |-
+      return id(orcon_humidity_boost_active);
+
+text_sensor:
+  - platform: template
+    name: "Orcon_Fan_Status"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 2
+    icon: "mdi:fan-alert"
+    update_interval: 1s
+
+    lambda: |-
+      if (id(orcon_fan_failure).state) {
+        return {"Error"};
+      }
+
+      if (id(orcon_humidity_boost_active)) {
+        return {"Humidity Boost"};
+      }
+
+      if (id(orcon_humidity_post_min) > 0.0) {
+        return {"Na boost"};
+      }
+
+      return {"OK"};
+
+  # v6: statustekst met uitleg
+  - platform: template
+    name: "Orcon_Status_Info"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 0
+    icon: "mdi:information-outline"
+    update_interval: 2s
+    lambda: |-
+      char b[110];
+      if (id(orcon_fan_failure).state) {
+        return std::string("STORING: ventilator draait niet (tacho te laag)");
+      }
+      if (id(orcon_remote_override) > 0) {
+        snprintf(b, sizeof(b), "Afstandsbediening stand %d - ventilator %d%%", id(orcon_remote_stand), id(orcon_remote_override));
+        return std::string(b);
+      }
+      if (id(orcon_boost_15m).is_running()) {
+        return std::string("Handmatige boost");
+      }
+      if (id(orcon_humidity_boost_active)) {
+        int s = id(orcon_humidity_boost_seconds);
+        int mx = (int) (id(orcon_humidity_max_boost_minutes).state * 60) - s;
+        int mn = (int) (id(orcon_humidity_min_boost_minutes).state * 60) - s;
+        if (mn > 0) {
+          snprintf(b, sizeof(b), "Vochtboost (douche) - minimaal nog %d min, max nog %d min", (mn + 59) / 60, (mx + 59) / 60);
+        } else {
+          snprintf(b, sizeof(b), "Vochtboost (douche) - stopt onder %.0f%%, max nog %d min",
+                   id(orcon_humidity_baseline) + id(orcon_humidity_boost_stop).state, (mx + 59) / 60);
+        }
+        return std::string(b);
+      }
+      if (id(orcon_humidity_post_min) > 0.0) {
+        snprintf(b, sizeof(b), "Na boost - laagste %.1f%%, nieuwe boost bij %.1f%%",
+                 id(orcon_humidity_post_min), id(orcon_humidity_post_min) + id(orcon_humidity_rise_restart).state);
+        return std::string(b);
+      }
+      if (id(orcon_humidity_baseline) < 0.0) {
+        return std::string("Opstarten...");
+      }
+      if (id(orcon_night_active)) {
+        snprintf(b, sizeof(b), "OK - nachtstand %d%%, boost bij %.1f%%", (int) id(orcon_night_speed).state,
+                 id(orcon_humidity_baseline) + id(orcon_humidity_rise_start).state);
+        return std::string(b);
+      }
+      snprintf(b, sizeof(b), "OK - boost bij %.1f%%", id(orcon_humidity_baseline) + id(orcon_humidity_rise_start).state);
+      return std::string(b);
+
+  # v7: stand van de afstandsbediening
+  - platform: template
+    name: "Orcon_Remote_Stand"
+    web_server:
+      sorting_group_id: grp_status
+      sorting_weight: 2
+    icon: "mdi:remote"
+    update_interval: 2s
+    lambda: |-
+      int st = id(orcon_remote_stand);
+      std::string t;
+      if (st == 0) t = (fabs(id(orcon_remote_auto_us).state - id(orcon_remote_afwezig_us).state) < 0.5) ? "Auto/Afwezig" : "Auto";
+      else if (st == 4) t = "Afwezig";
+      else if (st == 1) t = "1";
+      else if (st == 2) t = "2";
+      else if (st == 3) t = "3/Timer";
+      else t = "Onbekend";
+      if (id(orcon_remote_override) > 0) {
+        t += " (ESP volgt: " + to_string(id(orcon_remote_override)) + "%)";
+      }
+      return t;

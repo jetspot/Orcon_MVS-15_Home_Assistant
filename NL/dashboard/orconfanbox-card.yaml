@@ -42,9 +42,9 @@ cards:
           - entity: switch.orconfanbox_orcon_humidity_automatic
             name: Automatische vochtregeling
             icon: mdi:water-percent
-          - entity: number.orconfanbox_orcon_humidity_start
+          - entity: number.orconfanbox_orcon_humidity_rise_start
             name: Inschakelen vanaf
-          - entity: number.orconfanbox_orcon_humidity_stop
+          - entity: number.orconfanbox_orcon_humidity_boost_stop
             name: Uitschakelen onder
           - entity: number.orconfanbox_orcon_humidity_fan_speed
             name: Ventilatorsnelheid bij vocht

@@ -1,78 +1,77 @@
-# Orcon Fan Box voor Home Assistant
+# OrconFanBox voor Home Assistant
 
-Complete Nederlandstalige versie van de OrconFanBox-firmware, Home Assistant-integratie, dashboardkaart en documentatie.
+ESPHome-firmware (v11.17) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
 
 > [!IMPORTANT]
-> Zet eerst de meegeleverde nieuwe ESPHome-firmware uit `firmware/orconfanbox.yaml` op de D1 mini. Zonder deze firmware werken de beschreven entiteiten en de Home Assistant-dashboardkaart niet correct.
+> Alle firmwarebestanden staan in de map [`../firmware`](../firmware). Zet ze **allemaal** in dezelfde map in ESPHome; de YAML gebruikt de `.h`- en `.js`-bestanden.
 
-## Nieuwe functies in deze firmware
+![Webpagina op de pc](../screenshots/webpagina-pc.png)
 
-- eerste Wi-Fi-configuratie via het tijdelijke accesspoint **OrconFanBox Setup** en de captive portal;
-- directe koppeling met Home Assistant via de native ESPHome API;
-- volgende firmware-updates via OTA, zonder de D1 mini opnieuw via USB aan te sluiten;
-- native ventilatorbediening met een instelbare snelheid van 0 tot 100%;
-- PWM-snelheidsregeling via D6;
-- aparte knoppen voor laag (30%), middel (60%) en hoog (100%);
-- een booststand van 15 minuten met een annuleerknop;
-- automatische vochtregeling met instelbare start- en stopgrenzen;
-- handmatige bediening van het bypassrelais via `Orcon_Fan_Bypass`;
-- automatisch inschakelen van de bypass wanneer de ventilator draait en uitschakelen wanneer hij stopt;
-- meting van temperatuur, luchtvochtigheid en luchtdruk met een optionele BME280;
-- tachometermeting van het werkelijke ventilatortoerental;
-- vertraagde detectie van een ventilatorstoring wanneer de ventilator is ingeschakeld maar geen toerental wordt gemeten;
-- statussensor `Orcon_Fan_Status` met `OK` of `Error`;
-- uitlezing van het snelheidsverzoek van de originele Orcon-bediening als pulslengte;
-- kant-en-klare Home Assistant-dashboardkaart voor snelheid, aan/uit en bypass.
+## Functies
 
-![OrconWifiController](https://img.tindie.com/images/resize/xVi-TWmrzJDUIydKNFNMLN5Bqb4=/p/1200x630/smart/i/639182/products/2023-01-22T21:02:18.328Z-20221230_113158.jpg?1674392573)
+**Ventilator**
+- snelheid 0–100 % via PWM op D6, met tachometermeting op D5;
+- bypassrelais op D8, gekoppeld aan de ventilator (aan = bypass aan);
+- standen Laag, Midden en Hoog (instelbaar) en een boostknop met instelbare duur;
+- storingsdetectie: ventilator aan maar geen toerental → `Orcon_Fan_Failure`.
 
-[Bekijk de OrconWifiController op Tindie](https://www.tindie.com/products/hjhickinson/orconwificontroller-for-orcon-mvs-15/)
+**Vochtboost (BME280 op D1/D2)**
+- de firmware leert zelf de normale luchtvochtigheid (*baseline*);
+- boost start bij een instelbare **stijging** boven de baseline (standaard +8 procentpunt);
+- **variabele boost**: de snelheid loopt mee met de stijging, van *snelheid bij start* (40 %) tot *snelheid max* (80 %), en bij *vol vermogen bij stijging* (+20) naar *snelheid vol vermogen* (100 %);
+- na de piek bouwt de snelheid geleidelijk af in plaats van in één keer;
+- minimale en maximale boostduur, nafase en herkenning van een tweede douchebeurt.
 
-## Inhoud
+**Nachtstand** met begin- en eindtijd en een eigen snelheid.
 
-- `firmware/orconfanbox.yaml` - ESPHome-firmware
-- `dashboard/orconfanbox-card.yaml` - Home Assistant-dashboardkaart
-- `INSTALLATIE.md` - installatie en ingebruikname
-- `FIRMWARE_INSTALLEREN.md` - stap voor stap firmware op de D1 mini zetten
+**Afstandsbediening**: de originele Orcon-bediening (D7) wordt uitgelezen (pulsbreedte, periode, frequentie) en kan desgewenst gevolgd worden; de pulswaarden per stand zijn kalibreerbaar.
 
-## Wi-Fi instellen
+**Betrouwbaar opslaan**: alle instellingen staan in één vast, compact opslagblok in de flash en overleven herstart, stroomstoring en firmware-update.
 
-De openbare firmware bevat geen persoonlijke Wi-Fi-gegevens. Na de eerste start:
+**Grafiek 7 dagen**: vocht, baseline en ventilatorsnelheid, elke 5 minuten én bij elke snelheidsverandering een punt. Opgeslagen in een vrij deel van de flash (48 KB), dus ook na een herstart nog beschikbaar. Het aantal dagen (1–7) kiest u zelf boven de grafiek.
 
-1. Verbind met **OrconFanBox Setup**.
-2. Open zo nodig `http://192.168.4.1`.
-3. Selecteer het eigen Wi-Fi-netwerk en voer het wachtwoord in.
-4. Na de herstart is het apparaat normaal bereikbaar als `orconfanbox.local`.
+## Webpagina
+
+Open `http://orconfanbox.local` of het IP-adres van de box (inlog standaard **admin / admin**, aan te passen bovenin de YAML: `web_gebruiker` / `web_wachtwoord`).
+
+- groepen: Overzicht, Bediening, Grafiek, Systeem, Ventilatorstanden, Vochtboost, Nachtstand, Afstandsbediening;
+- elke groep is in- en uitklapbaar; de pagina onthoudt uw keuze;
+- Nederlandse namen op de pagina; de namen in Home Assistant blijven ongewijzigd;
+- invulvakken tonen alleen waarde en eenheid; de toegestane grens verschijnt links naast het vak zodra u erin tikt;
+- geschikt voor pc (twee kolommen) en telefoon (één kolom).
+
+| Telefoon | Grafiek |
+|---|---|
+| ![Telefoon](../screenshots/webpagina-telefoon.png) | ![Grafiek](../screenshots/grafiek.png) |
+
+**Diagnose:** `http://<ip>/diag` toont herstartreden, vrij geheugen, uptime, het aantal grafiekpunten en de laagste geheugenwaarden van deze en de vorige sessie.
+
+## Inhoud van deze repository
+
+- [`../firmware/orconfanbox.yaml`](../firmware/orconfanbox.yaml) – ESPHome-configuratie
+- `../firmware/orcon_opslag.h` – vast opslagblok voor de instellingen
+- `../firmware/orcon_grafiek.h` – grafiek in de flash, startpagina en `/diag`
+- `../firmware/orcon_d7.h` – meting van de afstandsbediening op D7
+- `../firmware/orcon_webgui.js` – webpagina
+- `../firmware/secrets.example.yaml` – voorbeeld voor uw wachtwoorden
+- [`dashboard/orconfanbox-card.yaml`](dashboard/orconfanbox-card.yaml) – Home Assistant-dashboardkaart
+- [`FIRMWARE_INSTALLEREN.md`](FIRMWARE_INSTALLEREN.md) – firmware op de D1 mini zetten
+- [`INSTALLATIE.md`](INSTALLATIE.md) – aansluiten en ingebruikname
 
 ## Home Assistant-entiteiten
 
-De firmware biedt deze twintig entiteiten aan:
+Home Assistant maakt de entiteit-ID's op basis van de apparaatnaam (bijv. `sensor.orconfanbox_orcon_air_humidity`). Controleer altijd de entiteitslijst van uw ESPHome-apparaat.
 
-- `fan.orconfanbox_orcon_fan_speed` - ventilator aan/uit en snelheid 0-100%;
-- `sensor.orconfanbox_orcon_fan_percentage` - huidige ingestelde ventilatorsnelheid in procenten;
-- `switch.orconfanbox_orcon_fan_bypass` - handmatige bypass;
-- `switch.orconfanbox_orcon_humidity_automatic` - automatische vochtregeling;
-- `button.orconfanbox_orcon_fan_low` - lage stand, 30%;
-- `button.orconfanbox_orcon_fan_medium` - middelste stand, 60%;
-- `button.orconfanbox_orcon_fan_high` - hoge stand, 100%;
-- `button.orconfanbox_orcon_fan_boost_15_minutes` - boost gedurende 15 minuten;
-- `button.orconfanbox_orcon_fan_boost_cancel` - boost annuleren en ventilator stoppen;
-- `number.orconfanbox_orcon_humidity_start` - startgrens automatische vochtregeling;
-- `number.orconfanbox_orcon_humidity_stop` - stopgrens automatische vochtregeling;
-- `number.orconfanbox_orcon_humidity_fan_speed` - instelbare ventilatorsnelheid bij hoge luchtvochtigheid, standaard 80%;
-- `number.orconfanbox_orcon_fan_boost_minutes` - instelbare boostduur, standaard 15 minuten;
-- `sensor.orconfanbox_orcon_air_temp` - luchttemperatuur;
-- `sensor.orconfanbox_orcon_air_pressure` - luchtdruk;
-- `sensor.orconfanbox_orcon_air_humidity` - luchtvochtigheid;
-- `sensor.orconfanbox_orcon_fan_tacho` - werkelijk ventilatortoerental;
-- `sensor.orconfanbox_orcon_fan_speed_requested` - verzoek van de originele bediening;
-- `sensor.orconfanbox_orcon_fan_status` - ventilatorstatus `OK` of `Error`.
-- `update.orconfanbox_firmware` - standaard uitgeschakelde ESPHome-entiteit voor firmware-updates.
-
-Home Assistant kan afhankelijk van de naamgeving iets andere entiteits-ID's genereren. Controleer daarom altijd de entiteitslijst van het ESPHome-apparaat.
-
-De firmware schakelt de bypass automatisch in wanneer de ventilator draait en uit wanneer de ventilator stopt.
+| Soort | Entiteiten |
+|---|---|
+| Ventilator | `Orcon_Fan_Speed` |
+| Schakelaars | `Orcon_Fan_Bypass`, `Orcon_Humidity_Automatic`, `Orcon_Humidity_Variable_Boost`, `Orcon_Night_Mode`, `Orcon_Remote_Control` |
+| Knoppen | `Orcon_Fan_Low`, `Orcon_Fan_Medium`, `Orcon_Fan_High`, `Orcon_Fan_Boost_15_Minutes`, `Orcon_Fan_Boost_Cancel` |
+| Sensoren | `Orcon_Fan_Percentage`, `Orcon_Fan_Tacho`, `Orcon_Fan_Speed_Requested`, `Orcon_Air_Temp`, `Orcon_Air_Humidity`, `Orcon_Air_Pressure`, `Orcon_Humidity_Baseline`, `Orcon_Humidity_Rise`, `Orcon_Humidity_Peak`, `Orcon_Humidity_Post_Min`, `Orcon_Remote_Pulse_us`, `Orcon_Remote_Period_us`, `Orcon_Remote_Freq_Hz` |
+| Binaire sensoren | `Orcon_Fan_Failure`, `Orcon_Humidity_Boost` |
+| Tekstsensoren | `Orcon_Status_Info`, `Orcon_Fan_Status`, `Orcon_Remote_Stand` |
+| Instellingen (getallen) | `Orcon_Normal_Fan_Speed`, `Orcon_Fan_Low_Speed`, `Orcon_Fan_Medium_Speed`, `Orcon_Fan_High_Speed`, `Orcon_Fan_Boost_Minutes`, `Orcon_Humidity_Rise_Start`, `Orcon_Humidity_Boost_Stop`, `Orcon_Humidity_Rise_Stop`, `Orcon_Humidity_Rise_Restart`, `Orcon_Humidity_Min_Boost_Minutes`, `Orcon_Humidity_Max_Boost_Minutes`, `Orcon_Humidity_Fan_Speed`, `Orcon_Humidity_Boost_Min_Speed`, `Orcon_Humidity_Full_Rise`, `Orcon_Humidity_Full_Speed`, `Orcon_Night_Start_Hour`, `Orcon_Night_End_Hour`, `Orcon_Night_Fan_Speed`, `Orcon_Remote_Auto_us`, `Orcon_Remote_Afwezig_us`, `Orcon_Remote_Stand1_us`, `Orcon_Remote_Stand2_us`, `Orcon_Remote_Stand3_us`, `Orcon_Remote_Tolerance_us` |
 
 ## Veiligheid
 
-Schakel de installatie spanningsloos en laat werkzaamheden aan 230 V door een deskundige uitvoeren.
+Schakel de installatie spanningsloos en laat werkzaamheden aan 230 V uitvoeren door een deskundige.

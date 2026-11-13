@@ -1,28 +1,29 @@
-# Installation and commissioning
+# Wiring and first start
 
 ## Safety
 
-Isolate the installation, verify that it is de-energized, and have mains-voltage work performed by a suitably qualified person.
+Disconnect the installation from mains power, verify this, and have work on mains voltage carried out by a qualified person.
 
-## First-time Wi-Fi setup
+## D1 mini connections
 
-1. Flash `firmware/orconfanbox.yaml` to the D1 mini.
-2. Connect to **OrconFanBox Setup**.
-3. Open `http://192.168.4.1` if necessary.
-4. Select the local Wi-Fi network and enter its password.
-5. After reboot, the device is normally available at `orconfanbox.local`.
+| Pin | Function |
+|---|---|
+| D6 | fan PWM control (50 kHz) |
+| D5 | tachometer (rpm) |
+| D8 | bypass relay |
+| D7 | signal from the original Orcon control |
+| D2 / D1 | BME280 SDA / SCL (address 0x76) |
 
-## Home Assistant
+## First start
 
-Verify these functions:
+1. Flash the firmware (see [FLASH_FIRMWARE.md](FLASH_FIRMWARE.md)).
+2. Open `http://orconfanbox.local` (admin / admin).
+3. Check humidity, temperature and rpm under **Overzicht**.
+4. Set the normal speed under **Ventilatorstanden**.
+5. The baseline (normal humidity) settles automatically during the first hours.
 
-- fan: `orcon_fan_speed`;
-- relay/bypass: `orcon_speed_bypass`;
-- tachometer: `orcon_tacho`;
-- factory-control request: `orcon_speed_requested`.
+## Troubleshooting
 
-## Diagnostics
-
-- No BME280: check power, ground, SDA, SCL, and address `0x76` or `0x77`.
-- No Wi-Fi: provision the network again through the temporary access point.
-- No tachometer feedback: check the D5/tacho connection.
+- **No humidity/temperature:** check power, GND, SDA/SCL and address 0x76/0x77.
+- **No rpm:** check the tacho connection on D5.
+- **Box restarts by itself:** check `/diag` for the reset reason and the lowest memory values.
