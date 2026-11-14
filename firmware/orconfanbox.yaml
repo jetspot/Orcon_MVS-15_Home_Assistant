@@ -1,8 +1,11 @@
 substitutions:
-  versie: "11.20"
+  versie: "11.24"
   # Inlog van de webpagina (gebruikersnaam en wachtwoord)
-  web_gebruiker: "admin"
-  web_wachtwoord: "admin"
+  web_gebruiker: !secret web_gebruiker
+  web_wachtwoord: !secret web_wachtwoord
+  # Op "true" zetten en flashen om een op de webpagina gewijzigd wachtwoord te wissen (terug naar web_wachtwoord)
+  web_wachtwoord_reset: "false"
+  ota_wachtwoord: !secret ota_password
   # Eenmalige omzetting naar het opslagblok (alleen v11). Daarna op "false" zetten!
   migratie: "false"
 
@@ -12,15 +15,39 @@ esphome:
   friendly_name: OrconFanBox
   # v8: eigen D7-meting (pulsbreedte + frequentie)
   includes:
+    - smit_setup.h
     - orcon_d7.h
     - orcon_opslag.h
     - orcon_grafiek.h
   on_boot:
+  # v11.23: 3x kort op RST -> webwachtwoord (al gewist bij laden) en opgeslagen wifi herstellen
+  - priority: -300
+    then:
+      - if:
+          condition:
+            lambda: return orc_rst_drie();
+          then:
+            - lambda: |-
+                ESP_LOGW("reset", "3x RST: opgeslagen wifi wordt gewist, daarna herstart");
+                esphome::wifi::global_wifi_component->save_wifi_sta("", "");
+            - delay: 7s
+            - lambda: |-
+                global_preferences->sync();
+                App.safe_reboot();
+          else:
+            - delay: 8s
+            - lambda: orc_rst_wis();
   # v11.5: grafiekgegevens via /grafiek.bin
+  - priority: 200
+    then:
+      - lambda: smit::na_wifi_start();
   - priority: -200
     then:
       - lambda: |-
           orc_fl_init();
+          orc_ww_toepassen();
+          esphome::web_server_base::global_web_server_base->add_handler(new OrcWachtwoordHandler());
+          esphome::web_server_base::global_web_server_base->add_handler(new smit::ResetHandler());
           orc_mem_init();
           esphome::web_server_base::global_web_server_base->add_handler(new OrcGrafiekHandler());
           esphome::web_server_base::global_web_server_base->add_handler(new OrcDiagHandler());
@@ -29,8 +56,14 @@ esphome:
   - priority: 950
     then:
       - lambda: |-
+          // v11.24: instelpagina (zonder inlog, alleen op het instelnetwerk) vóór alle andere pagina's
+          smit::cfg().titel = "OrconFanBox";
+          smit::cfg().zet_ww = [](const char *n) { if (!smit::ww_geldig(n)) return false; strncpy(orc_ww_opslag(), n, 31); orc_ww_opslag()[31] = 0; orc_ww_toepassen(); return true; };
+          smit::cfg().start_reset = []() { uint32_t n = 2; orc_rst_pref().save(&n); };
+          esphome::web_server_base::global_web_server_base->add_handler_without_auth(new smit::SetupHandler());
           // v11.8: eigen startpagina vóór de standaard webserver registreren
           esphome::web_server_base::global_web_server_base->add_handler(new OrcIndexHandler("${web_gebruiker}", "${web_wachtwoord}"));
+          orc_rst_tel();
           orc_pref() = global_preferences->make_preference<OrcOpslag>(ORC_MAGIC, true);
           OrcOpslag d{};
           bool ok = orc_pref().load(&d) && d.magic == ORC_MAGIC;
@@ -69,6 +102,10 @@ esphome:
             ESP_LOGW("opslag", "Omzetting naar vast opslagblok uitgevoerd");
           }
           if (ok) { orc_geladen() = d; id(orcon_baseline_saved) = d.baseline; ESP_LOGI("opslag", "Opslagblok geladen"); }
+          // v11.22: gewijzigd webwachtwoord uit het opslagblok
+          orc_ww_standaard() = "${web_wachtwoord}";
+          if (ok && !${web_wachtwoord_reset}) { memcpy(orc_ww_opslag(), d.reserve, 31); orc_ww_opslag()[31] = 0; if (!orc_ww_geldig(orc_ww_opslag())) orc_ww_opslag()[0] = 0; }
+          if (orc_rst_drie()) { orc_ww_opslag()[0] = 0; ESP_LOGW("reset", "3x RST: webwachtwoord terug naar standaard"); }
           else ESP_LOGW("opslag", "Geen opslagblok: standaardwaarden");
   # v11: waarden toepassen zodra de entiteiten bestaan
   - priority: 550
@@ -107,15 +144,13 @@ api:
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    password: "${ota_wachtwoord}"
 
+# Geen wifi-gegevens in de firmware: wifi wordt ingesteld via het instelnetwerk (http://192.168.4.1).
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-
   ap:
     ssid: "OrconFanBox Setup"
-    password: !secret ap_password
+    password: !secret fallback_ap_password
 
 captive_portal:
 
@@ -128,6 +163,7 @@ web_server:
   auth:
     username: ${web_gebruiker}
     password: ${web_wachtwoord}
+    type: digest
   sorting_groups:
     - id: grp_status
       name: "Status"
@@ -152,6 +188,7 @@ time:
     servers:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
+      - 2.pool.ntp.org
   # v11.7: reserve-tijdbron via Home Assistant (SNTP wordt niet beantwoord)
   - platform: homeassistant
     id: orcon_ha_time
@@ -1194,6 +1231,7 @@ interval:
           auto t = id(orcon_time).now();
           orc_nu() = t.is_valid() ? (uint32_t) t.timestamp : 0;
           orc_mem_tik(orc_nu());
+          smit::tik();
           // v11.12: extra grafiekpunt bij elke verandering van de ventilatorsnelheid (min. 10 s ertussen)
           static int laatste = -1;
           static uint32_t laatst_t = 0;
@@ -1511,6 +1549,7 @@ interval:
                       (id(orcon_night_mode).state ? 4 : 0) | (id(orcon_remote_control).state ? 8 : 0) |
                       (id(orcon_var_boost).state ? 16 : 0);
           d.baseline = id(orcon_baseline_saved);
+          memcpy(d.reserve, orc_ww_opslag(), 32);
           orc_pref().save(&d);
 
   # Baseline langzaam mee laten lopen (niet tijdens boost of nafase).

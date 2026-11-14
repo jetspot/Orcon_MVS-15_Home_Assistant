@@ -1,6 +1,6 @@
 # OrconFanBox voor Home Assistant
 
-ESPHome-firmware (v11.20) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
+ESPHome-firmware (v11.24) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
 
 > [!IMPORTANT]
 > Alle firmwarebestanden staan in de map [`../firmware`](../firmware). Zet ze **allemaal** in dezelfde map in ESPHome; de YAML gebruikt de `.h`- en `.js`-bestanden.
@@ -55,12 +55,40 @@ Ingezoomd op één douchebeurt (met de muis slepen, of op de telefoon horizontaa
 
 **Diagnose:** `http://<ip>/diag` toont herstartreden, vrij geheugen, uptime, het aantal grafiekpunten en de laagste geheugenwaarden van deze en de vorige sessie.
 
+## Instellen zonder wifi in de firmware
+
+In de firmware staan **geen wifi-gegevens**. Bij de eerste start (en na een fabrieksreset) opent de box zelf het netwerk **OrconFanBox Setup**. Verbind daarmee; de instelpagina `http://192.168.4.1` opent vanzelf.
+
+De instelpagina heeft twee stappen:
+
+1. **Wifi** – kies uw 2,4 GHz-netwerk uit de lijst en vul het wachtwoord in.
+2. **Wachtwoord webpagina** – kies een nieuw wachtwoord van 5 tot en met 23 tekens, of klik op **Overslaan** om `admin` te houden.
+
+Het instelnetwerk blijft actief tot er iets is ingesteld.
+
+| Stap 1 wifi | Stap 2 wachtwoord |
+|---|---|
+| <img src="../screenshots/instelpagina-wifi-donker.png" width="260"> | <img src="../screenshots/instelpagina-wachtwoord-donker.png" width="260"> |
+
+## Fabrieksreset
+
+Twee manieren, met hetzelfde resultaat:
+
+- **3 keer kort** op de RST-knop van de D1 mini drukken;
+- op de webpagina onder **Systeem** op **Fabrieksreset** klikken.
+
+De wifi-gegevens worden gewist en het wachtwoord van de webpagina wordt weer `admin`. **Uw instellingen en meetgegevens blijven bewaard**, inclusief de grafiek. Daarna start het instelnetwerk weer.
+
+![Fabrieksreset](../screenshots/fabrieksreset.png)
+
 ## Inhoud van deze repository
 
 - [`../firmware/orconfanbox.yaml`](../firmware/orconfanbox.yaml) – ESPHome-configuratie
 - `../firmware/orcon_opslag.h` – vast opslagblok voor de instellingen
 - `../firmware/orcon_grafiek.h` – grafiek in de flash, startpagina en `/diag`
 - `../firmware/orcon_d7.h` – meting van de afstandsbediening op D7
+- `../firmware/smit_setup.h` – instelpagina van het instelnetwerk en de fabrieksreset
+- `../firmware/bron/` – de losse bronbestanden van de webpagina
 - `../firmware/orcon_webgui.js` – webpagina
 - `../firmware/secrets.example.yaml` – voorbeeld voor uw wachtwoorden
 - [`dashboard/orconfanbox-card.yaml`](dashboard/orconfanbox-card.yaml) – Home Assistant-dashboardkaart

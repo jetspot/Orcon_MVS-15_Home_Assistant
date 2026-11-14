@@ -9,7 +9,7 @@
 ## Preparation
 
 1. Copy **all** files from `firmware/` to your ESPHome folder (Home Assistant: `/config/esphome/`).
-2. Copy `secrets.example.yaml` to `secrets.yaml` (or extend your existing one) with `wifi_ssid`, `wifi_password`, `ota_password` and `ap_password`.
+2. Copy `secrets.example.yaml` to `secrets.yaml` (or extend your existing one) with `web_gebruiker`, `web_wachtwoord`, `ota_password` and `fallback_ap_password`. **No Wi-Fi credentials are needed**: you set those through the setup network.
 3. Optionally change the web login at the top of `orconfanbox.yaml`: `web_gebruiker` and `web_wachtwoord` (default admin / admin).
 
 > [!WARNING]
@@ -20,7 +20,7 @@
 1. Connect the D1 mini with a USB data cable.
 2. Open `orconfanbox.yaml` in ESPHome and choose **Install** → USB.
 3. Wait until ESPHome reports success.
-4. If the box cannot find your Wi-Fi it starts the access point **OrconFanBox Setup**. Connect to it and open `http://192.168.4.1` to choose your network.
+4. After flashing, the box starts the network **OrconFanBox Setup**. Connect to it and the setup page `http://192.168.4.1` opens by itself. Choose your Wi-Fi there, then a new web page password (or click **Overslaan** to skip).
 
 ## Updating over the network (OTA)
 

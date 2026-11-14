@@ -1,6 +1,6 @@
 # OrconFanBox for Home Assistant
 
-ESPHome firmware (v11.20) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
+ESPHome firmware (v11.24) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
 
 > [!IMPORTANT]
 > All firmware files are in [`../firmware`](../firmware). Put **all** of them in the same ESPHome folder; the YAML uses the `.h` and `.js` files.
@@ -54,12 +54,40 @@ Zoomed in on one shower (drag with the mouse or swipe horizontally on a phone; d
 
 **Diagnostics:** `http://<ip>/diag` shows reset reason, free memory, uptime, chart points and the lowest memory values of this and the previous session.
 
+## Setup without Wi-Fi credentials in the firmware
+
+The firmware contains **no Wi-Fi credentials**. On first boot (and after a factory reset) the box opens the network **OrconFanBox Setup**. Connect to it and the setup page `http://192.168.4.1` opens by itself.
+
+The setup page has two steps:
+
+1. **Wi-Fi** – pick your 2.4 GHz network from the list and enter its password.
+2. **Web page password** – choose a new password of 5 to 23 characters, or click **Overslaan** (skip) to keep `admin`.
+
+The setup network stays on until something has been configured.
+
+| Step 1 Wi-Fi | Step 2 password |
+|---|---|
+| <img src="../screenshots/instelpagina-wifi-donker.png" width="260"> | <img src="../screenshots/instelpagina-wachtwoord-donker.png" width="260"> |
+
+## Factory reset
+
+Two ways, same result:
+
+- press the RST button on the D1 mini **three times briefly**;
+- click **Fabrieksreset** under **Systeem** on the web page.
+
+The Wi-Fi credentials are erased and the web page password returns to `admin`. **Your settings and measurements are kept**, including the chart. The setup network then starts again.
+
+![Factory reset](../screenshots/fabrieksreset.png)
+
 ## Contents
 
 - [`../firmware/orconfanbox.yaml`](../firmware/orconfanbox.yaml) – ESPHome configuration
 - `../firmware/orcon_opslag.h` – fixed storage block for settings
 - `../firmware/orcon_grafiek.h` – flash chart, start page and `/diag`
 - `../firmware/orcon_d7.h` – remote-control measurement on D7
+- `../firmware/smit_setup.h` – setup page of the setup network and the factory reset
+- `../firmware/bron/` – the separate source files of the web page
 - `../firmware/orcon_webgui.js` – web page
 - `../firmware/secrets.example.yaml` – template for your passwords
 - [`dashboard/orconfanbox-card.yaml`](dashboard/orconfanbox-card.yaml) – Home Assistant dashboard card

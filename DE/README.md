@@ -1,6 +1,6 @@
 # OrconFanBox für Home Assistant
 
-ESPHome-Firmware (v11.20) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
+ESPHome-Firmware (v11.24) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
 
 > [!IMPORTANT]
 > Alle Firmware-Dateien liegen im Ordner [`../firmware`](../firmware). Legen Sie **alle** Dateien in denselben ESPHome-Ordner; die YAML verwendet die `.h`- und `.js`-Dateien.
@@ -54,12 +54,40 @@ Auf eine Dusche gezoomt (mit der Maus ziehen oder am Smartphone waagerecht wisch
 
 **Diagnose:** `http://<ip>/diag` zeigt Neustartgrund, freien Speicher, Laufzeit, Diagrammpunkte und die niedrigsten Speicherwerte dieser und der vorherigen Sitzung.
 
+## Einrichtung ohne WLAN-Daten in der Firmware
+
+Die Firmware enthält **keine WLAN-Daten**. Beim ersten Start (und nach einem Werksreset) öffnet die Box das Netzwerk **OrconFanBox Setup**. Verbinden Sie sich damit; die Einrichtungsseite `http://192.168.4.1` öffnet sich von selbst.
+
+Die Einrichtungsseite hat zwei Schritte:
+
+1. **WLAN** – wählen Sie Ihr 2,4-GHz-Netz aus der Liste und geben Sie das Passwort ein.
+2. **Passwort der Webseite** – wählen Sie ein neues Passwort mit 5 bis 23 Zeichen, oder klicken Sie auf **Overslaan** (überspringen), um `admin` zu behalten.
+
+Das Einrichtungsnetzwerk bleibt aktiv, bis etwas eingestellt wurde.
+
+| Schritt 1 WLAN | Schritt 2 Passwort |
+|---|---|
+| <img src="../screenshots/instelpagina-wifi-donker.png" width="260"> | <img src="../screenshots/instelpagina-wachtwoord-donker.png" width="260"> |
+
+## Werksreset
+
+Zwei Wege, gleiches Ergebnis:
+
+- die RST-Taste des D1 mini **dreimal kurz** drücken;
+- auf der Webseite unter **Systeem** auf **Fabrieksreset** klicken.
+
+Die WLAN-Daten werden gelöscht und das Passwort der Webseite wird wieder `admin`. **Ihre Einstellungen und Messdaten bleiben erhalten**, auch das Diagramm. Danach startet das Einrichtungsnetzwerk erneut.
+
+![Werksreset](../screenshots/fabrieksreset.png)
+
 ## Inhalt
 
 - [`../firmware/orconfanbox.yaml`](../firmware/orconfanbox.yaml) – ESPHome-Konfiguration
 - `../firmware/orcon_opslag.h` – fester Speicherblock für die Einstellungen
 - `../firmware/orcon_grafiek.h` – Diagramm im Flash, Startseite und `/diag`
 - `../firmware/orcon_d7.h` – Messung der Fernbedienung an D7
+- `../firmware/smit_setup.h` – Einrichtungsseite des Einrichtungsnetzwerks und der Werksreset
+- `../firmware/bron/` – die einzelnen Quelldateien der Webseite
 - `../firmware/orcon_webgui.js` – Webseite
 - `../firmware/secrets.example.yaml` – Vorlage für Ihre Passwörter
 - [`dashboard/orconfanbox-card.yaml`](dashboard/orconfanbox-card.yaml) – Home-Assistant-Dashboardkarte

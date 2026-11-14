@@ -71,6 +71,15 @@ inline void orc_gr_add(uint32_t epoch, float hum, float base, float fan) {
   if (f.geldig < ORC_FL_N) f.geldig++;
 }
 inline uint32_t &orc_nu() { static uint32_t n = 0; return n; }
+// v11.22: webwachtwoord wijzigbaar op de webpagina (bewaard in OrcOpslag.reserve, max 31 tekens).
+// Leeg = standaardwachtwoord uit secrets.yaml (web_wachtwoord).
+inline char *orc_ww_opslag() { static char w[32] = ""; return w; }
+inline const char *&orc_ww_standaard() { static const char *s = "admin"; return s; }
+inline const char *orc_ww_actief() { return orc_ww_opslag()[0] ? orc_ww_opslag() : orc_ww_standaard(); }
+inline void orc_ww_toepassen() { esphome::web_server_base::global_web_server_base->set_auth_password(orc_ww_actief()); }
+inline bool orc_ww_geldig(const char *w) {
+  return smit::ww_geldig(w);  // v11.24: 5 tot en met 23 tekens, gelijk op alle apparaten
+}
 // v11.15: geheugenbewaking; laagste waarden van deze en de vorige sessie (RTC-geheugen, overleeft een herstart)
 struct OrcMem { uint32_t magic; uint32_t heap_blok; uint32_t uptime; uint32_t epoch; };
 static const uint32_t ORC_MEM_MAGIC = 0x4F524344;  // 'ORCD'
@@ -149,7 +158,7 @@ class OrcIndexHandler : public AsyncWebHandler {
   OrcIndexHandler(const char *gebruiker, const char *wachtwoord) : gebruiker_(gebruiker), wachtwoord_(wachtwoord) {}
   bool canHandle(AsyncWebServerRequest *req) const override { return req->url() == "/" && req->method() == HTTP_GET; }
   void handleRequest(AsyncWebServerRequest *req) override {
-    if (!req->authenticate(gebruiker_, wachtwoord_)) { req->requestAuthentication(); return; }
+    if (!req->authenticate(gebruiker_, orc_ww_actief())) { req->requestAuthentication(); return; }
     auto *resp = req->beginResponse(200, "text/html",
       "<!DOCTYPE html><html><head><meta charset=UTF-8>"
       "<meta name=viewport content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">"
@@ -174,3 +183,43 @@ class OrcMeetHandler : public AsyncWebHandler {
     req->send(204);
   }
 };
+
+// v11.22: POST /wachtwoord-wijzigen (veld "nieuw" in de body), alleen na inloggen
+class OrcWachtwoordHandler : public AsyncWebHandler {
+ public:
+  bool canHandle(AsyncWebServerRequest *req) const override { return req->method() == HTTP_POST && req->url() == "/wachtwoord-wijzigen"; }
+  bool isRequestHandlerTrivial() const override { return false; }
+  void handleBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total) override {
+    if (index == 0) body_ = "";
+    if (body_.length() + len < 200) body_.concat((const char *) data, len);
+  }
+  void handleRequest(AsyncWebServerRequest *req) override {
+    String n;
+    int p = body_.indexOf("nieuw=");
+    if (p >= 0) { int e = body_.indexOf('&', p); n = req->urlDecode(body_.substring(p + 6, e < 0 ? body_.length() : e)); }
+    body_ = "";
+    if (n.length() == 0 && req->hasParam("nieuw", true)) n = req->getParam("nieuw", true)->value();
+    if (n.length() == 0) { req->send(400, "text/plain", "Nieuw wachtwoord ontbreekt."); return; }
+    if (!orc_ww_geldig(n.c_str())) { req->send(400, "text/plain", "Gebruik 5 tot en met 23 tekens, zonder spaties."); return; }
+    strncpy(orc_ww_opslag(), n.c_str(), 31); orc_ww_opslag()[31] = 0;
+    orc_ww_toepassen();
+    ESP_LOGW("web", "Webwachtwoord gewijzigd via de webpagina");
+    req->send(200, "text/plain", "Wachtwoord opgeslagen. Log opnieuw in met het nieuwe wachtwoord.");
+  }
+ private:
+  String body_;
+};
+
+// 3x kort op RST (drie keer snel herstarten) -> webwachtwoord en opgeslagen wifi herstellen.
+// Teller in het RTC-geheugen via ESPHome (normale RTC-regio); wordt na 8 s normaal draaien gewist.
+inline esphome::ESPPreferenceObject &orc_rst_pref() { static esphome::ESPPreferenceObject p; return p; }
+inline bool &orc_rst_drie() { static bool b = false; return b; }
+inline void orc_rst_tel() {
+  orc_rst_pref() = esphome::global_preferences->make_preference<uint32_t>(0x52535433UL, false);
+  uint32_t n = 0;
+  if (!orc_rst_pref().load(&n) || n > 10) n = 0;
+  n++;
+  if (n >= 3) { orc_rst_drie() = true; n = 0; }
+  orc_rst_pref().save(&n);
+}
+inline void orc_rst_wis() { uint32_t n = 0; orc_rst_pref().save(&n); }
