@@ -1,6 +1,6 @@
 # OrconFanBox für Home Assistant
 
-ESPHome-Firmware (v11.24) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
+ESPHome-Firmware (v11.27) für einen D1 mini (ESP8266), der ein **Orcon MVS-15**-Lüftungsgerät steuert – mit feuchtegesteuertem Boost, eigener Webseite, 7-Tage-Diagramm und vollständiger Home-Assistant-Integration.
 
 > [!IMPORTANT]
 > Alle Firmware-Dateien liegen im Ordner [`../firmware`](../firmware). Legen Sie **alle** Dateien in denselben ESPHome-Ordner; die YAML verwendet die `.h`- und `.js`-Dateien.
@@ -79,6 +79,25 @@ Zwei Wege, gleiches Ergebnis:
 Die WLAN-Daten werden gelöscht und das Passwort der Webseite wird wieder `admin`. **Ihre Einstellungen und Messdaten bleiben erhalten**, auch das Diagramm. Danach startet das Einrichtungsnetzwerk erneut.
 
 ![Werksreset](../screenshots/fabrieksreset.png)
+
+## Anlaufschwelle und Kalibrierung
+
+Ein Orcon MVS-15 läuft unterhalb einer bestimmten Stufe nicht an. Beim Gerät des Autors sind das 11%: darunter bleibt der Lüfter stehen, auch wenn die Stufe auf 10% steht. Deshalb ist der **kleinste einstellbare Wert** für Normal, Nacht, Niedrig, Mittel und Hoch standardmäßig **12%**.
+
+Hat Ihr Gerät eine andere Schwelle, nutzen Sie die Kalibrierung in der Gruppe **Ventilatorstanden**:
+
+1. Klicken Sie bei Aanloopdrempel auf **Start**.
+2. Die Feuchteautomatik wird vorübergehend ausgeschaltet und der Lüfter angehalten.
+3. Die Box probiert 6%, 7%, 8% und so weiter, bis der Lüfter anläuft, und prüft diesen Wert dreimal aus dem Stillstand.
+4. Der gefundene Wert plus 1% wird die neue Untergrenze. Danach wird die Feuchteautomatik wieder eingeschaltet und der Lüfter kehrt auf seine vorherige Stufe zurück.
+
+Die Kalibrierung dauert einige Minuten; die Grenze bleibt auch nach einem Neustart erhalten. Mit **Annuleren** brechen Sie ab.
+
+![Kalibrierung](../screenshots/kalibratie.png)
+
+## Gruppen verschieben
+
+Jede Gruppe hat links in der Kopfzeile einen Griff **⠿**. Damit verschieben Sie eine Gruppe an eine andere Stelle, auch in die andere Spalte. Die Reihenfolge wird pro Gerät im Browser gemerkt. **Standaard herstellen** unter **Systeem** stellt die ursprüngliche Reihenfolge wieder her.
 
 ## Inhalt
 

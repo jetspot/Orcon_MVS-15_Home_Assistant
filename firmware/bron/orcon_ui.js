@@ -51,6 +51,7 @@
       U.rijTekst(g, 'Gevraagde snelheid (diagnose)', ['sensor/Orcon_Fan_Speed_Requested'], function () { return U.tekst('sensor/Orcon_Fan_Speed_Requested'); });
       U.rijLink(g, 'Diagnose (/diag) openen', '/diag');
       U.rijWachtwoord(g);
+      U.rijVolgorde(g);
       U.rijReset(g, 'OrconFanBox Setup');
       U.rijUpdate(g);
       var pre = U.logVak(g);
@@ -62,6 +63,14 @@
       U.rijGetal(g, 'Midden', 'number/Orcon_Fan_Medium_Speed');
       U.rijGetal(g, 'Hoog', 'number/Orcon_Fan_High_Speed');
       U.rijGetal(g, 'Boostknop duur', 'number/Orcon_Fan_Boost_Minutes');
+      // v11.26: kalibratie van de aanloopdrempel
+      U.rijTekst(g, 'Aanloopdrempel', ['text_sensor/Orcon_Kalibratie_Status'], function () { return U.tekst('text_sensor/Orcon_Kalibratie_Status'); });
+      U.rijKnoppen(g, 'Kalibratie', [
+        U.knop('Start', 'start', function () { U.stuur('/button/Orcon_Kalibratie_Start/press'); }),
+        U.knop('Annuleren', 'annuleer', function () { U.stuur('/button/Orcon_Kalibratie_Stop/press'); })
+      ]);
+      var kh = U.rij(g, null), kt = e('span', 'l', 'Zoekt vanuit stilstand de laagste stand waarop de ventilator aanloopt en zet die plus 1% als ondergrens. Duurt enkele minuten; de vochtautomaat staat zolang uit.');
+      kt.style.cssText = 'color:var(--zacht);font-size:12px;white-space:normal'; kh.appendChild(kt);
       R.appendChild(g);
 
       g = U.groep('Vochtboost', '💧', 'vochtboost');

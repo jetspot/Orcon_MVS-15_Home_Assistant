@@ -1,6 +1,6 @@
 # OrconFanBox voor Home Assistant
 
-ESPHome-firmware (v11.24) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
+ESPHome-firmware (v11.27) voor een D1 mini (ESP8266) die een **Orcon MVS-15**-ventilatie-unit aanstuurt, met vochtgestuurde boost, een eigen webpagina, een grafiek van 7 dagen en volledige Home Assistant-integratie.
 
 > [!IMPORTANT]
 > Alle firmwarebestanden staan in de map [`../firmware`](../firmware). Zet ze **allemaal** in dezelfde map in ESPHome; de YAML gebruikt de `.h`- en `.js`-bestanden.
@@ -80,6 +80,25 @@ Twee manieren, met hetzelfde resultaat:
 De wifi-gegevens worden gewist en het wachtwoord van de webpagina wordt weer `admin`. **Uw instellingen en meetgegevens blijven bewaard**, inclusief de grafiek. Daarna start het instelnetwerk weer.
 
 ![Fabrieksreset](../screenshots/fabrieksreset.png)
+
+## Aanloopdrempel en kalibratie
+
+Een Orcon MVS-15 loopt onder een bepaalde stand niet aan. Bij de box van de maker is dat 11%: daaronder blijft de ventilator stilstaan, ook al staat de stand op 10%. Daarom is de **laagste instelbare waarde** van Normaal, Nachtstand, Laag, Midden en Hoog standaard **12%**.
+
+Heeft uw unit een andere drempel, gebruik dan de kalibratie in de groep **Ventilatorstanden**:
+
+1. Klik op **Start** bij Aanloopdrempel.
+2. De vochtautomaat gaat tijdelijk uit en de ventilator wordt stilgezet.
+3. De box probeert 6%, 7%, 8% enzovoort tot de ventilator aanloopt, en controleert die waarde drie keer vanuit stilstand.
+4. De gevonden waarde plus 1% wordt de nieuwe ondergrens. Daarna gaat de vochtautomaat weer aan en komt de ventilator terug op zijn oude stand.
+
+De kalibratie duurt enkele minuten en de gevonden grens blijft ook na een herstart bewaard. Met **Annuleren** stopt u tussentijds.
+
+![Kalibratie](../screenshots/kalibratie.png)
+
+## Groepen verslepen
+
+Elke groep heeft links in de kop een greep **⠿**. Daarmee versleept u een groep naar een andere plek, ook naar de andere kolom. De volgorde wordt per apparaat in uw browser onthouden. Onder **Systeem** zet **Standaard herstellen** de oorspronkelijke volgorde terug.
 
 ## Inhoud van deze repository
 

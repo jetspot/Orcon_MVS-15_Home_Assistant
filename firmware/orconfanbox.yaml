@@ -1,5 +1,5 @@
 substitutions:
-  versie: "11.24"
+  versie: "11.27"
   # Inlog van de webpagina (gebruikersnaam en wachtwoord)
   web_gebruiker: !secret web_gebruiker
   web_wachtwoord: !secret web_wachtwoord
@@ -101,7 +101,13 @@ esphome:
             ok = true;
             ESP_LOGW("opslag", "Omzetting naar vast opslagblok uitgevoerd");
           }
-          if (ok) { orc_geladen() = d; id(orcon_baseline_saved) = d.baseline; ESP_LOGI("opslag", "Opslagblok geladen"); }
+          if (ok) {
+            orc_geladen() = d; id(orcon_baseline_saved) = d.baseline;
+            // v11.26: bewaarde aanloopdrempel (ondergrens van de standen)
+            int dr = (int) lroundf(d.num[25]);
+            if (dr >= 5 && dr <= 40) id(orc_kal_drempel) = dr;
+            ESP_LOGI("opslag", "Opslagblok geladen");
+          }
           // v11.22: gewijzigd webwachtwoord uit het opslagblok
           orc_ww_standaard() = "${web_wachtwoord}";
           if (ok && !${web_wachtwoord_reset}) { memcpy(orc_ww_opslag(), d.reserve, 31); orc_ww_opslag()[31] = 0; if (!orc_ww_geldig(orc_ww_opslag())) orc_ww_opslag()[0] = 0; }
@@ -117,7 +123,13 @@ esphome:
           if (d.magic == ORC_MAGIC) {
             for (int i = 0; i < 25; i++) {
               float v = d.num[i];
-              if (std::isfinite(v)) { auto c = N[i]->make_call(); c.set_value(v); c.perform(); }
+              // v11.25: bewaarde waarde binnen de huidige grenzen houden (de ventilator loopt onder 11% niet aan)
+              if (std::isfinite(v)) {
+                float mn = N[i]->traits.get_min_value(), mx = N[i]->traits.get_max_value();
+                if (v < mn) v = mn;
+                if (v > mx) v = mx;
+                auto c = N[i]->make_call(); c.set_value(v); c.perform();
+              }
             }
             b = d.schakel;
           }
@@ -126,6 +138,19 @@ esphome:
           if (b & 4) id(orcon_night_mode).turn_on(); else id(orcon_night_mode).turn_off();
           if (b & 8) id(orcon_remote_control).turn_on(); else id(orcon_remote_control).turn_off();
           if (b & 16) id(orcon_var_boost).turn_on(); else id(orcon_var_boost).turn_off();
+          {
+            // v11.26: ondergrens van de standen op de gekalibreerde aanloopdrempel zetten
+            int dg = id(orc_kal_drempel);
+            esphome::number::Number *NS[] = {id(orcon_normal_speed), id(orcon_night_speed), id(orcon_low_speed), id(orcon_medium_speed), id(orcon_high_speed)};
+            for (auto *n : NS) {
+              n->traits.set_min_value(dg);
+              if (n->state < dg) { auto c = n->make_call(); c.set_value(dg); c.perform(); }
+            }
+            char kb[64];
+            snprintf(kb, sizeof(kb), "Ondergrens %d%% (niet gekalibreerd)", dg);
+            if (id(orc_kal_tekst) == "Nog niet gekalibreerd" && dg != 12) snprintf(kb, sizeof(kb), "Ondergrens %d%% (gekalibreerd)", dg);
+            id(orc_kal_tekst) = kb;
+          }
           id(orc_klaar) = true;
   - priority: 600
     then:
@@ -195,6 +220,47 @@ time:
     timezone: Europe/Amsterdam
 
 globals:
+  # v11.26: kalibratie van de aanloopdrempel (laagste stand waarop de ventilator aanloopt)
+  - id: orc_kal_fase
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_p
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_poging
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_gevonden
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_t0
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_auto
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: orc_kal_speed
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: orc_kal_aan_uit
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+  - id: orc_kal_drempel
+    type: int
+    restore_value: no
+    initial_value: '12'
+  - id: orc_kal_tekst
+    type: std::string
+    restore_value: no
+    initial_value: '"Nog niet gekalibreerd"'
   - id: orc_klaar
     type: bool
     restore_value: no
@@ -715,6 +781,30 @@ script:
             - fan.turn_off: orcon_fan_speed
 
 button:
+  # v11.26: aanloopdrempel zoeken en als ondergrens instellen
+  - platform: template
+    name: "Orcon_Kalibratie_Start"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 97
+    icon: "mdi:play-circle-outline"
+    on_press:
+      - lambda: |-
+          if (id(orc_kal_fase) != 0) return;
+          id(orc_kal_fase) = 1;
+          id(orc_kal_tekst) = "Kalibratie gestart";
+
+  - platform: template
+    name: "Orcon_Kalibratie_Stop"
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 98
+    icon: "mdi:close-circle-outline"
+    on_press:
+      - lambda: |-
+          if (id(orc_kal_fase) == 0) return;
+          id(orc_kal_fase) = 90;
+
   - platform: template
     name: "Orcon_Fan_Low"
     web_server:
@@ -834,7 +924,7 @@ number:
     mode: box
     icon: "mdi:fan-speed-1"
     unit_of_measurement: "%"
-    min_value: 5
+    min_value: 12
     max_value: 50
     step: 1
     initial_value: 11
@@ -1054,7 +1144,7 @@ number:
     mode: box
     icon: "mdi:fan-speed-1"
     unit_of_measurement: "%"
-    min_value: 5
+    min_value: 12
     max_value: 50
     step: 1
     initial_value: 8
@@ -1087,7 +1177,7 @@ number:
     mode: box
     icon: "mdi:fan-speed-1"
     unit_of_measurement: "%"
-    min_value: 5
+    min_value: 12
     max_value: 100
     step: 1
     initial_value: 30
@@ -1103,7 +1193,7 @@ number:
     mode: box
     icon: "mdi:fan-speed-2"
     unit_of_measurement: "%"
-    min_value: 5
+    min_value: 12
     max_value: 100
     step: 1
     initial_value: 60
@@ -1119,7 +1209,7 @@ number:
     mode: box
     icon: "mdi:fan-speed-3"
     unit_of_measurement: "%"
-    min_value: 5
+    min_value: 12
     max_value: 100
     step: 1
     initial_value: 100
@@ -1232,6 +1322,90 @@ interval:
           orc_nu() = t.is_valid() ? (uint32_t) t.timestamp : 0;
           orc_mem_tik(orc_nu());
           smit::tik();
+          // v11.26: kalibratie van de aanloopdrempel
+          if (id(orc_kal_fase) != 0) {
+            uint32_t nu = millis();
+            float t = id(orcon_tacho).state;
+            auto zet = [](int sp) { auto c = id(orcon_fan_speed).turn_on(); c.set_speed(sp); c.perform(); };
+            auto terug = []() {
+              if (id(orc_kal_auto)) id(orcon_humidity_auto).turn_on();
+              if (id(orc_kal_aan_uit)) { auto c = id(orcon_fan_speed).turn_on(); c.set_speed(id(orc_kal_speed) > 0 ? id(orc_kal_speed) : (int) id(orcon_normal_speed).state); c.perform(); }
+              else id(orcon_fan_speed).turn_off().perform();
+              id(orc_kal_fase) = 0;
+            };
+            char kb[64];
+            switch (id(orc_kal_fase)) {
+              case 1:
+                id(orc_kal_auto) = id(orcon_humidity_auto).state;
+                id(orc_kal_aan_uit) = id(orcon_fan_speed).state;
+                id(orc_kal_speed) = id(orcon_fan_speed).speed;
+                id(orcon_humidity_auto).turn_off();
+                id(orc_kal_p) = 5; id(orc_kal_gevonden) = 0; id(orc_kal_poging) = 0;
+                zet(5); id(orc_kal_t0) = nu; id(orc_kal_fase) = 2;
+                id(orc_kal_tekst) = "Bezig: ventilator stilzetten";
+                break;
+              case 2:  // wachten tot de ventilator stilstaat, daarna de volgende stand proberen
+                if (nu - id(orc_kal_t0) > 180000) { id(orc_kal_tekst) = "Mislukt: de ventilator komt niet tot stilstand"; terug(); break; }
+                if (t < 20 && nu - id(orc_kal_t0) > 25000) {
+                  id(orc_kal_p)++;
+                  zet(id(orc_kal_p)); id(orc_kal_t0) = nu; id(orc_kal_fase) = 3;
+                  snprintf(kb, sizeof(kb), "Bezig: %d%% proberen", id(orc_kal_p));
+                  id(orc_kal_tekst) = kb;
+                }
+                break;
+              case 3:  // meten of de ventilator aanloopt
+                if (nu - id(orc_kal_t0) < 35000) break;
+                if (t >= 100) {
+                  id(orc_kal_gevonden) = id(orc_kal_p); id(orc_kal_poging) = 1;
+                  zet(5); id(orc_kal_t0) = nu; id(orc_kal_fase) = 4;
+                  snprintf(kb, sizeof(kb), "Bezig: %d%% controleren (1 van 3)", id(orc_kal_gevonden));
+                  id(orc_kal_tekst) = kb;
+                } else if (id(orc_kal_p) >= 30) {
+                  id(orc_kal_tekst) = "Mislukt: tot 30% geen aanloop gevonden";
+                  terug();
+                } else { zet(5); id(orc_kal_t0) = nu; id(orc_kal_fase) = 2; }
+                break;
+              case 4:  // stilzetten voor de controle
+                if (nu - id(orc_kal_t0) > 180000) { id(orc_kal_tekst) = "Mislukt: de ventilator komt niet tot stilstand"; terug(); break; }
+                if (t < 20 && nu - id(orc_kal_t0) > 25000) { zet(id(orc_kal_gevonden)); id(orc_kal_t0) = nu; id(orc_kal_fase) = 5; }
+                break;
+              case 5:  // controle meten
+                if (nu - id(orc_kal_t0) < 35000) break;
+                if (t >= 100) {
+                  if (id(orc_kal_poging) >= 3) {
+                    int d = id(orc_kal_gevonden) + 1;
+                    if (d < 5) d = 5;
+                    if (d > 40) d = 40;
+                    id(orc_kal_drempel) = d;
+                    {
+                      esphome::number::Number *NS[] = {id(orcon_normal_speed), id(orcon_night_speed), id(orcon_low_speed), id(orcon_medium_speed), id(orcon_high_speed)};
+                      for (auto *n : NS) {
+                        n->traits.set_min_value(d);
+                        if (n->state < d) { auto c = n->make_call(); c.set_value(d); c.perform(); }
+                      }
+                    }
+                    snprintf(kb, sizeof(kb), "Klaar: loopt aan vanaf %d%%, ondergrens %d%%", id(orc_kal_gevonden), d);
+                    id(orc_kal_tekst) = kb;
+                    terug();
+                  } else {
+                    id(orc_kal_poging)++;
+                    zet(5); id(orc_kal_t0) = nu; id(orc_kal_fase) = 4;
+                    snprintf(kb, sizeof(kb), "Bezig: %d%% controleren (%d van 3)", id(orc_kal_gevonden), id(orc_kal_poging));
+                    id(orc_kal_tekst) = kb;
+                  }
+                } else {
+                  snprintf(kb, sizeof(kb), "Bezig: %d%% viel weg, hoger proberen", id(orc_kal_gevonden));
+                  id(orc_kal_tekst) = kb;
+                  id(orc_kal_p) = id(orc_kal_gevonden); id(orc_kal_gevonden) = 0;
+                  zet(5); id(orc_kal_t0) = nu; id(orc_kal_fase) = 2;
+                }
+                break;
+              case 90:
+                id(orc_kal_tekst) = "Kalibratie afgebroken";
+                terug();
+                break;
+            }
+          }
           // v11.12: extra grafiekpunt bij elke verandering van de ventilatorsnelheid (min. 10 s ertussen)
           static int laatste = -1;
           static uint32_t laatst_t = 0;
@@ -1545,6 +1719,7 @@ interval:
           d.magic = ORC_MAGIC;
           esphome::number::Number *N[] = {id(orcon_normal_speed), id(orcon_boost_minutes), id(orcon_humidity_speed), id(orcon_humidity_rise_start), id(orcon_humidity_rise_stop), id(orcon_humidity_peak_drop), id(orcon_humidity_max_boost_minutes), id(orcon_humidity_rise_restart), id(orcon_humidity_boost_stop), id(orcon_humidity_min_boost_minutes), id(orcon_night_start), id(orcon_night_end), id(orcon_night_speed), id(orcon_low_speed), id(orcon_medium_speed), id(orcon_high_speed), id(orcon_remote_auto_us), id(orcon_remote_afwezig_us), id(orcon_remote_s1_us), id(orcon_remote_s2_us), id(orcon_remote_s3_us), id(orcon_remote_tolerance), id(orcon_boost_min), id(orcon_full_rise), id(orcon_full_speed)};
           for (int i = 0; i < 25; i++) d.num[i] = N[i]->state;
+          d.num[25] = (float) id(orc_kal_drempel);   // v11.26: gekalibreerde ondergrens
           d.schakel = (id(orcon_speed_bypass).state ? 1 : 0) | (id(orcon_humidity_auto).state ? 2 : 0) |
                       (id(orcon_night_mode).state ? 4 : 0) | (id(orcon_remote_control).state ? 8 : 0) |
                       (id(orcon_var_boost).state ? 16 : 0);
@@ -1685,6 +1860,17 @@ text_sensor:
       }
 
       return {"OK"};
+
+  # v11.26: status van de kalibratie
+  - platform: template
+    name: "Orcon_Kalibratie_Status"
+    id: orcon_kal_status
+    web_server:
+      sorting_group_id: grp_instellingen
+      sorting_weight: 99
+    icon: "mdi:tune"
+    update_interval: 2s
+    lambda: return id(orc_kal_tekst);
 
   # v6: statustekst met uitleg
   - platform: template

@@ -30,6 +30,9 @@
     + '.o-bt.annuleer{border-color:#5a626b;background:#5a626b;color:#ff6b6b;font-weight:700}.o-dlg{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:99;padding:16px}.o-dlgb{background:var(--kaart);color:var(--tekst);border:1px solid var(--rand);border-radius:10px;padding:16px;max-width:420px;font-size:15px;line-height:1.45}.o-dlgb b{font-size:17px}.o-dlgk{display:flex;gap:10px;justify-content:flex-end}'
     + '.o-slider{flex:1;min-width:90px;accent-color:var(--accent)}'
     + '#o-log{margin:0;padding:8px 12px;height:260px;overflow:auto;font:12px/17px ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}'      + ';';
+  css += '.o-gr{cursor:grab;color:var(--zacht);font-size:15px;line-height:1;padding:2px 4px 2px 0;touch-action:none;user-select:none}'
+    + '.o-gr:active{cursor:grabbing}.o-g.o-sleep{opacity:.96;box-shadow:0 10px 26px rgba(0,0,0,.45);pointer-events:none}'
+    + '.o-plaats{border:2px dashed var(--accent);border-radius:10px;background:transparent}';
   css += 'html,body{margin:0;overflow-x:hidden;max-width:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}*{box-sizing:border-box}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   // Zonder deze regel toont een telefoon de pagina op 980 px breed.
@@ -51,6 +54,11 @@
 
   function groep(titel, icoon, klapId, dicht) {
     var g = e('div', 'o-g'), h = e('div', 'o-h'), b = e('div', 'o-b');
+    if (klapId) {
+      var gr = e('span', 'o-gr', '⠿'); gr.title = 'Versleep de groep';
+      gr.addEventListener('click', function (ev) { ev.stopPropagation(); });
+      h.appendChild(gr);
+    }
     h.appendChild(e('span', null, (icoon ? icoon + '  ' : '') + titel));
     if (klapId) {
       g.classList.add('klap'); var n = e('span', 'n'); h.appendChild(n);
@@ -60,7 +68,9 @@
       h.addEventListener('click', function () { open = !open; try { localStorage.setItem(C.prefix + 'Klap_' + klapId, open ? '1' : '0'); } catch (x) {} zet(); });
       zet();
     }
-    g.appendChild(h); g.appendChild(b); g.body = b; g.head = h; return g;
+    g.appendChild(h); g.appendChild(b); g.body = b; g.head = h;
+    if (klapId) g.dataset.sleutel = klapId;
+    return g;
   }
   function rij(g, label, sub) {
     var r = e('div', 'o-r' + (sub ? ' sub' : ''));
@@ -182,6 +192,9 @@
       });
     })]);
   }
+  function rijVolgorde(g) {
+    return rijKnoppen(g, 'Volgorde van de groepen', [knop('Standaard herstellen', '', function () { volgordeHerstellen(); })]);
+  }
   function rijUpdate(g) {
     var r = e('form', 'o-r'); r.method = 'POST'; r.action = '/update'; r.enctype = 'multipart/form-data';
     var f = e('input'); f.type = 'file'; f.name = 'update'; f.accept = '.bin,application/octet-stream'; f.style.flex = '1'; f.style.minWidth = '0';
@@ -189,6 +202,82 @@
     g.body.appendChild(r); return r;
   }
   function logVak(g) { var pre = e('pre'); pre.id = 'o-log'; g.body.appendChild(pre); return pre; }
+
+  // v2: groepen verslepen; de volgorde wordt per apparaat onthouden
+  function volgordeSleutel() { return C.prefix + 'Volgorde'; }
+  function volgordeBewaren(kolommen) {
+    try {
+      var uit = kolommen.map(function (k) {
+        return Array.prototype.filter.call(k.children, function (x) { return x.dataset && x.dataset.sleutel; })
+          .map(function (x) { return x.dataset.sleutel; });
+      });
+      localStorage.setItem(volgordeSleutel(), JSON.stringify(uit));
+    } catch (x) {}
+  }
+  function volgordeToepassen(kolommen) {
+    var opgeslagen = null;
+    try { opgeslagen = JSON.parse(localStorage.getItem(volgordeSleutel()) || 'null'); } catch (x) {}
+    if (!opgeslagen || !opgeslagen.length) return;
+    var alles = {};
+    kolommen.forEach(function (k) {
+      Array.prototype.forEach.call(k.children, function (x) { if (x.dataset && x.dataset.sleutel) alles[x.dataset.sleutel] = x; });
+    });
+    opgeslagen.forEach(function (lijst, i) {
+      var kol = kolommen[i]; if (!kol || !lijst) return;
+      lijst.forEach(function (sleutel) { var g = alles[sleutel]; if (g) { kol.appendChild(g); delete alles[sleutel]; } });
+    });
+  }
+  function sleepbaar(kolommen) {
+    kolommen.forEach(function (kol) {
+      kol.addEventListener('pointerdown', function (ev) {
+        var greep = ev.target.closest ? ev.target.closest('.o-gr') : null;
+        if (!greep || ev.button) return;
+        var g = greep.closest('.o-g'); if (!g) return;
+        ev.preventDefault(); ev.stopPropagation();
+        var rect = g.getBoundingClientRect();
+        var dx = ev.clientX - rect.left, dy = ev.clientY - rect.top;
+        var plaats = e('div', 'o-plaats'); plaats.style.height = rect.height + 'px';
+        g.parentNode.insertBefore(plaats, g);
+        g.classList.add('o-sleep');
+        g.style.cssText += ';position:fixed;z-index:60;width:' + rect.width + 'px;left:' + rect.left + 'px;top:' + rect.top + 'px';
+        var beweeg = function (p) {
+          g.style.left = (p.clientX - dx) + 'px';
+          g.style.top = (p.clientY - dy) + 'px';
+          var doel = kolommen[0], best = 1e9;
+          kolommen.forEach(function (k) {
+            var r = k.getBoundingClientRect();
+            var afstand = Math.abs(p.clientX - (r.left + r.width / 2)) + (p.clientY < r.top ? r.top - p.clientY : (p.clientY > r.bottom ? p.clientY - r.bottom : 0));
+            if (afstand < best) { best = afstand; doel = k; }
+          });
+          var na = null;
+          Array.prototype.forEach.call(doel.children, function (x) {
+            if (x === plaats || x === g) return;
+            var r = x.getBoundingClientRect();
+            if (p.clientY > r.top + r.height / 2) na = x;
+          });
+          if (na) doel.insertBefore(plaats, na.nextSibling); else doel.insertBefore(plaats, doel.firstChild);
+        };
+        var los = function (p) {
+          window.removeEventListener('pointermove', beweeg);
+          window.removeEventListener('pointerup', los);
+          window.removeEventListener('pointercancel', los);
+          g.classList.remove('o-sleep');
+          g.style.position = ''; g.style.zIndex = ''; g.style.width = ''; g.style.left = ''; g.style.top = '';
+          plaats.parentNode.insertBefore(g, plaats);
+          plaats.remove();
+          volgordeBewaren(kolommen);
+        };
+        window.addEventListener('pointermove', beweeg);
+        window.addEventListener('pointerup', los);
+        window.addEventListener('pointercancel', los);
+        beweeg(ev);
+      });
+    });
+  }
+  function volgordeHerstellen() {
+    try { localStorage.removeItem(volgordeSleutel()); } catch (x) {}
+    location.reload();
+  }
 
   function start(cfg) {
     C.prefix = cfg.prefix || 'smit'; C.titel = cfg.titel || 'Apparaat'; C.versie = cfg.versie || '';
@@ -215,6 +304,8 @@
       var kol = e('div', 'o-kol'), L = e('div'), R = e('div'); kol.appendChild(L); kol.appendChild(R); app.appendChild(kol);
 
       var pre = cfg.bouw(API, L, R) || null;
+      volgordeToepassen([L, R]);
+      sleepbaar([L, R]);
 
       var src = window.source || new EventSource('/events');
       window.source = src;
@@ -250,7 +341,7 @@
     e: e, post: post, stuur: stuur, waarde: waarde, gegevens: gegevens, getal: getal, jn: jn, tekst: tekst, bind: bind,
     groep: groep, rij: rij, rijTekst: rijTekst, rijSchakel: rijSchakel, rijGetal: rijGetal, rijKnoppen: rijKnoppen,
     rijLink: rijLink, schakelaar: schakelaar, knop: knop, melding: melding, vraag: vraag,
-    invoer: invoer, rijInvoer: rijInvoer,
+    invoer: invoer, rijInvoer: rijInvoer, volgordeHerstellen: volgordeHerstellen, rijVolgorde: rijVolgorde,
     rijWachtwoord: rijWachtwoord, rijReset: rijReset, rijUpdate: rijUpdate, logVak: logVak, start: start
   };
   window.SmitUI = API;

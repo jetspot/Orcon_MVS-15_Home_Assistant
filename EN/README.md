@@ -1,6 +1,6 @@
 # OrconFanBox for Home Assistant
 
-ESPHome firmware (v11.24) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
+ESPHome firmware (v11.27) for a D1 mini (ESP8266) that controls an **Orcon MVS-15** ventilation unit, with humidity-driven boost, its own web page, a 7-day chart and full Home Assistant integration.
 
 > [!IMPORTANT]
 > All firmware files are in [`../firmware`](../firmware). Put **all** of them in the same ESPHome folder; the YAML uses the `.h` and `.js` files.
@@ -79,6 +79,25 @@ Two ways, same result:
 The Wi-Fi credentials are erased and the web page password returns to `admin`. **Your settings and measurements are kept**, including the chart. The setup network then starts again.
 
 ![Factory reset](../screenshots/fabrieksreset.png)
+
+## Start-up threshold and calibration
+
+An Orcon MVS-15 will not start below a certain level. On the author's unit that is 11%: below it the fan stays still, even with the level set to 10%. That is why the **lowest settable value** for Normal, Night, Low, Medium and High is **12%** by default.
+
+If your unit has a different threshold, use the calibration in the **Ventilatorstanden** group:
+
+1. Click **Start** next to Aanloopdrempel.
+2. The humidity automation is switched off temporarily and the fan is stopped.
+3. The box tries 6%, 7%, 8% and so on until the fan starts, and checks that value three times from standstill.
+4. The value found plus 1% becomes the new lower limit. The humidity automation is then switched back on and the fan returns to its previous level.
+
+Calibration takes a few minutes and the limit is kept across a restart. **Annuleren** stops it halfway.
+
+![Calibration](../screenshots/kalibratie.png)
+
+## Moving the groups
+
+Every group has a handle **⠿** on the left of its header. Drag a group to another position with it, including to the other column. The order is remembered per device in your browser. **Standaard herstellen** under **Systeem** restores the original order.
 
 ## Contents
 
